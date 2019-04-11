@@ -37,18 +37,24 @@ $(window).on('load', function() {
   });
 
   $("div#canvas").on('mousemove', function(e) {
-    canvasAnimation(e);
+    if (followingObj !== null) animateFollowingEvent(e);
   });
 
+  $("div#canvas").on('click', function(e) {
+    if (followingObj !== null) placeFollowingEvent();
+    else if (e.target === $("div#canvas")[0]) fb.unfocus();
+  });
 });
 
-function canvasAnimation(e) {
-  if (followingObj === null) return;
-
+function animateFollowingEvent(e) {
   let obj = $(followingObj);
   obj.css({
     "left": e.clientX - obj.width() / 2 + "px",
-    "top": e.clientY + "px",
+    "top": e.clientY - obj.height() / 2 + "px",
   });
+}
 
+function placeFollowingEvent(e) {
+  fb.add(followingObj);
+  unsetFollowCursor();
 }

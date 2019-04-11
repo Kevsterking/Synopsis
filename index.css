@@ -27,6 +27,12 @@ div#canvas {
   background: white;
 }
 
+fieldset#focused span {
+  display: block;
+  margin: 5px 0;
+  color: white;
+}
+
 button.tool-button {
   width: 100%;
   padding: 10px 0;
