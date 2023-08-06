@@ -30,3 +30,9 @@ Here is a demonstration of how nodes and edges may be depicted:
 ## License
 
 --**TODO**--
+
+## Coming
+
+- running/compiling/debugging code directly inside synopsis with workflow described by the diagram 
+- Git integration directly with the diagrams
+
