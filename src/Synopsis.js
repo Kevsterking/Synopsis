@@ -2,7 +2,7 @@ function Synopsis() {
   return <div id="diagram-root" style={{position: "relative", width: "1500px", height: "900px", backgroundColor: "rgb(51, 51, 51)", overflow: "hidden"}}>
     <canvas id="diagram-canvas" style={{position: "absolute", width: "100%", height: "100%"}}>
     </canvas>
-    <div id="diagram-elements" style={{position: "absolute", border: "1px solid white", transform: "translate(-50%, -50%)", width: "100px", height: "100px", left: "50%", top: "50%"}}>
+    <div id="diagram-elements" style={{position: "absolute", border: "1px solid white", transform: "translate(-100%, -100%)", width: "100px", height: "100px", left: "50%", top: "50%"}}>
     </div>
   </div> 
 }
@@ -18,8 +18,7 @@ function Diagram(root_element, canvas_element, elements_element) {
   this.canvasContext.canvas.height = this.canvas_element.offsetHeight;
 
   this.translation = { x: 0, y: 0 };
-  this.scale = 1;
-
+  
   this.mouse_down = { translation: null, is_down: false, x: null, y: null };
   this.delta = { x: 0, y: 0 };
 
@@ -44,22 +43,27 @@ function Diagram(root_element, canvas_element, elements_element) {
     
     this.canvasContext.clearRect(0, 0, this.canvas_element.offsetWidth, this.canvas_element.offsetHeight);
 
+    this.canvasContext.strokeStyle = "rgb(60, 60, 60)";
+    this.canvasContext.lineWidth = 1;
+
     this.canvasContext.beginPath();
 
-    this.canvasContext.strokeStyle = "rgb(45, 45, 45)";
-    this.canvasContext.lineWidth = 0.1;
-
-    for (let x = (this.translation.x - this.canvas_element.offsetWidth) % 50; x < this.canvas_element.offsetWidth; x += 50) {
+    for (let x = (this.translation.x - this.canvas_element.offsetWidth) % 100 - 50; x < this.canvas_element.offsetWidth; x += 100) {
       this.canvasContext.moveTo(x, 0);
       this.canvasContext.lineTo(x, this.canvas_element.offsetHeight);
     }
-    for (let y = (this.translation.y - this.canvas_element.offsetHeight) % 50; y < this.canvas_element.offsetWidth; y += 50) {
+    for (let y = (this.translation.y - this.canvas_element.offsetHeight) % 100 - 50; y < this.canvas_element.offsetWidth; y += 100) {
       this.canvasContext.moveTo(0, y);
       this.canvasContext.lineTo(this.canvas_element.offsetWidth, y);
     }
 
-    this.canvasContext.strokeStyle = "rgb(70, 70, 70)";
-    this.canvasContext.lineWidth = 0.5;
+    this.canvasContext.closePath();
+    this.canvasContext.stroke();
+
+    this.canvasContext.beginPath();
+
+    this.canvasContext.strokeStyle = "rgb(80, 80, 80)";
+    this.canvasContext.lineWidth = 1;
     
     for (let x = (this.translation.x - this.canvas_element.offsetWidth) % 100; x < this.canvas_element.offsetWidth; x += 100) {
       this.canvasContext.moveTo(x, 0);
@@ -70,6 +74,7 @@ function Diagram(root_element, canvas_element, elements_element) {
       this.canvasContext.lineTo(this.canvas_element.offsetWidth, y);
     }
     
+    this.canvasContext.closePath();
     this.canvasContext.stroke();
 
   }
@@ -85,13 +90,13 @@ function Diagram(root_element, canvas_element, elements_element) {
     this.translation.y = Math.min(this.translation.y, this.root_element.clientHeight * 0.5 - this.root_element.clientHeight * 0.1);
     
     this.updateGrid();
-    this.elements_element.style.transform = "translate(-50%, -50%) translate("+this.translation.x+"px, "+this.translation.y+"px) scale("+this.scale+")";
+    this.elements_element.style.transform = "translate(-100%, -100%) translate("+this.translation.x+"px, "+this.translation.y+"px) scale("+this.scale+")";
     
   }
 
   this.setScale = (scale) => {
     this.scale = scale;
-    this.elements_element.style.transform = "translate(-50%, -50%) translate("+this.translation.x+"px, "+this.translation.y+"px) scale("+this.scale+")";
+    this.elements_element.style.transform = "translate(-100%, -100%) translate("+this.translation.x+"px, "+this.translation.y+"px) scale("+this.scale+")";
     this.updateGrid();
   }
 
@@ -130,8 +135,10 @@ function Diagram(root_element, canvas_element, elements_element) {
   this.root_element.onmouseup = mouseUpAction;
 
   this.root_element.onwheel = (e) => {
-    this.setScale();
+    this.setScale(1);
   }
+
+  this.updateGrid();
 
 }
 
