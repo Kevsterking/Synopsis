@@ -1,0 +1,5 @@
+2023-08-07 18:17: Due to further developed forethought on the matter, the zoom and scale functionality of the diagram has been put on hold indefinetly. 
+Reason being it brings unecessary complexity at this stage of development, and for which the value is currently miniscule, next to none or even negative. 
+An argument can be made that zooming may not at all have a place in this core part of the software and instead may be intruduced in a component built 
+ontop of it for when it's needed.
+

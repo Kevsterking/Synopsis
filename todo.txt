@@ -1,0 +1,3 @@
+Consider super resolution or subpixel somehow for the grid as each line looks big.
+
+Some consideration should be put into panning with scroll instead of dragging. Must be considered what to do with mobile then aswell.
