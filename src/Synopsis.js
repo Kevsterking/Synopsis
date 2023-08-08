@@ -18,8 +18,8 @@ function DiagramGrid(canvas_element) {
   this.origin = { x: 0, y: 0 };
 
   this.setTranslation = (x, y) => {
-    this.origin.x = x - this.context.canvas.width;
-    this.origin.y = y - this.context.canvas.height;
+    this.origin.x = this.context.canvas.width * 0.5 + x;
+    this.origin.y = this.context.canvas.height * 0.5 + y;
   }
 
   this.update = () => {
@@ -31,7 +31,7 @@ function DiagramGrid(canvas_element) {
 
     /* Draw vertical gridlines */ 
     this.context.beginPath();
-    this.context.strokeStyle = "rgb(60, 60, 60)";
+    this.context.strokeStyle = "rgb(55, 55, 55)";
     for (let x = this.origin.x % 100 - 50; x < this.canvas_element.offsetWidth; x += 100) {
       this.context.moveTo(x, 0);
       this.context.lineTo(x, this.canvas_element.offsetHeight);
@@ -45,7 +45,7 @@ function DiagramGrid(canvas_element) {
 
     /* Draw horizontal gridlines */ 
     this.context.beginPath();
-    this.context.strokeStyle = "rgb(70, 70, 70)";
+    this.context.strokeStyle = "rgb(60, 60, 60)";
     for (let x = this.origin.x % 100; x < this.canvas_element.offsetWidth; x += 100) {
       this.context.moveTo(x, 0);
       this.context.lineTo(x, this.canvas_element.offsetHeight);
@@ -59,7 +59,7 @@ function DiagramGrid(canvas_element) {
 
     /* Draw origin lines */
     this.context.beginPath();
-    this.context.strokeStyle = "rgb(80, 80, 80)";
+    this.context.strokeStyle = "rgb(65, 65, 65)";
     this.context.moveTo(this.origin.x, 0);
     this.context.lineTo(this.origin.x, this.canvas_element.offsetHeight);
     this.context.moveTo(0, this.origin.y);
@@ -71,12 +71,14 @@ function DiagramGrid(canvas_element) {
 
 }
 
-function DiagramElements(element_container, left_corner_coordinate) {
+function DiagramElements(element_container, offset) {
   
   this.element = element_container;
 
+  this.extent = { x: { min: 0, max: 0 }, y: { min: 0, max: 0 } };
+
   this.translation  = { x: 0, y: 0 };
-  this.offset       = { x: left_corner_coordinate.x, y: left_corner_coordinate.y };
+  this.offset       = offset;
 
   /*
     update position
@@ -86,13 +88,42 @@ function DiagramElements(element_container, left_corner_coordinate) {
   }
 
   /*
+    Check if width and offset need to be changed
+  */
+  this.updateBounds = () => {
+  
+    this.offset.x = this.extent.x.min;
+    this.offset.y = this.extent.y.min;
+    
+    this.element.style.width = (this.extent.x.max - this.extent.x.min) + "px";
+    this.element.style.height = (this.extent.y.max - this.extent.y.min) + "px";
+
+    this.update();
+
+  }
+
+  /*
     Offset the panzoom area by (x, y) 
   */
   this.setOffset = (x, y) => {
     this.offset.x = x;
     this.offset.y = y;
   } 
-  
+
+  /*
+    Expand if necessary to contain all placed elements
+  */
+  this.place = (x, y) => {
+
+    if (x > this.extent.x.max) this.extent.x.max = x;
+    else if (x < this.extent.x.min) this.extent.x.min = x;
+    if (y > this.extent.y.max) this.extent.y.max = y;
+    else if (y < this.extent.y.min) this.extent.y.min = y;
+
+    this.updateBounds();
+
+  }
+
   /*
     Translate the panzoom area to (x, y) 
   */
@@ -103,15 +134,14 @@ function DiagramElements(element_container, left_corner_coordinate) {
   
 }
 
-function Diagram(element, canvas_element, elements_element, left_corner_coordinate) {
+function Diagram(element, canvas_element, elements_element, offset) {
   
   this.element = element;
   this.elements_element = elements_element;
 
-  this.elements = new DiagramElements(elements_element, left_corner_coordinate);
+  this.elements = new DiagramElements(elements_element, offset);
   this.grid     = new DiagramGrid(canvas_element); 
 
-  this.offset = { x: left_corner_coordinate.x, y: left_corner_coordinate.y };
   this.translation = { x: null, y: null };
   
   this.mouse_down = { translation: null, is_down: false, x: null, y: null };
@@ -136,10 +166,10 @@ function Diagram(element, canvas_element, elements_element, left_corner_coordina
   */
   this.setTranslation = (x, y) => {
     
-    this.translation.x = Math.max(x, - this.offset.x - this.element.clientWidth * 0.5 - this.elements_element.offsetWidth + 100);
-    this.translation.y = Math.max(y, - this.offset.y - this.element.clientHeight * 0.5 - this.elements_element.offsetHeight + 100);
-    this.translation.x = Math.min(this.translation.x,  this.element.clientWidth * 0.5 - 100 - this.offset.x);
-    this.translation.y = Math.min(this.translation.y,  this.element.clientHeight * 0.5 - 100 - this.offset.y);
+    this.translation.x = Math.max(x, - this.elements.offset.x - this.element.clientWidth * 0.5 - this.elements_element.offsetWidth + 100);
+    this.translation.y = Math.max(y, - this.elements.offset.y - this.element.clientHeight * 0.5 - this.elements_element.offsetHeight + 100);
+    this.translation.x = Math.min(this.translation.x,  this.element.clientWidth * 0.5 - 100 - this.elements.offset.x);
+    this.translation.y = Math.min(this.translation.y,  this.element.clientHeight * 0.5 - 100 - this.elements.offset.y);
     
     this.elements.setTranslation(this.translation.x, this.translation.y);
     this.grid.setTranslation(this.translation.x, this.translation.y);
@@ -183,7 +213,13 @@ function Diagram(element, canvas_element, elements_element, left_corner_coordina
 
   this.element.onmouseup = mouseUpAction;
 
-  this.setTranslation(-this.elements_element.offsetWidth*0.5-this.offset.x, -this.elements_element.offsetHeight*0.5-this.offset.y);
+  this.element.onclick = (e) => {
+
+    this.elements.place(e.x - this.element.offsetWidth * 0.5 + this.translation.x, e.y - this.element.offsetHeight * 0.5 + this.translation.y);
+    
+  }
+
+  this.setTranslation(-this.elements_element.offsetWidth*0.5-offset.x, -this.elements_element.offsetHeight*0.5-offset.y);
 
 }
 
