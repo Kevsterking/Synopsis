@@ -1,6 +1,8 @@
 function Synopsis() {
-  return <div id="diagram-root" style={{position: "relative", width: "1500px", height: "900px", backgroundColor: "rgb(51, 51, 51)", overflow: "hidden"}}>
-    <canvas id="diagram-canvas" style={{position: "absolute", width: "100%", height: "100%"}}>
+  return <div id="diagram-root" style={{position: "relative", overflow: "scroll", width: "1500px", height: "900px", backgroundColor: "rgb(51, 51, 51)" }}>
+    <div id="diagram-scroller" style={{border: "2px solid red", position: "static"}}>
+    </div>
+    <canvas id="diagram-canvas" style={{position: "absolute", top: "0", left: "0", width: "100%", height: "100%"}}>
     </canvas>
     <div id="diagram-elements" style={{position: "absolute", border: "1px solid white", left: "50%", top: "50%"}}>
     </div>
@@ -71,14 +73,14 @@ function DiagramGrid(canvas_element) {
 
 }
 
-function DiagramElements(element_container, offset) {
+function DiagramElements(element_container) {
   
   this.element = element_container;
 
   this.extent = { x: { min: 0, max: 0 }, y: { min: 0, max: 0 } };
 
   this.translation  = { x: 0, y: 0 };
-  this.offset       = offset;
+  this.offset       = { x: 0, y: 0 };
 
   /*
     update position
@@ -134,12 +136,14 @@ function DiagramElements(element_container, offset) {
   
 }
 
-function Diagram(element, canvas_element, elements_element, offset) {
+function Diagram(element, canvas_element, elements_element, scroller_element) {
   
   this.element = element;
   this.elements_element = elements_element;
 
-  this.elements = new DiagramElements(elements_element, offset);
+  this.scroller_element = scroller_element; 
+
+  this.elements = new DiagramElements(elements_element);
   this.grid     = new DiagramGrid(canvas_element); 
 
   this.translation = { x: null, y: null };
@@ -159,6 +163,11 @@ function Diagram(element, canvas_element, elements_element, offset) {
       this.delta.y = e.y - this.mouse_down.y;
       this.setTranslation(this.mouse_down.translation.x + this.delta.x, this.mouse_down.translation.y + this.delta.y);
     }
+  }
+
+  const updateScroller = () => {
+    this.scroller_element.style.width = (2 * this.element.offsetWidth + this.elements_element.offsetWidth - 200) + "px";
+    this.scroller_element.style.height = (2 * this.element.offsetHeight + this.elements_element.offsetHeight - 200) + "px";
   }
 
   /*
@@ -209,17 +218,35 @@ function Diagram(element, canvas_element, elements_element, offset) {
 
   }
 
-  this.element.onmousemove = mouseMoveAction;
+  //this.element.onmousemove = mouseMoveAction;
 
   this.element.onmouseup = mouseUpAction;
 
-  this.element.onclick = (e) => {
+  this.element.oncontextmenu = (e) => {
 
-    this.elements.place(e.x - this.element.offsetWidth * 0.5 + this.translation.x, e.y - this.element.offsetHeight * 0.5 + this.translation.y);
-    
+    e.preventDefault();
+    this.elements.place(e.x - this.element.offsetWidth * 0.5 - this.translation.x, e.y - this.element.offsetHeight * 0.5 - this.translation.y);
+    updateScroller();
+
   }
 
-  this.setTranslation(-this.elements_element.offsetWidth*0.5-offset.x, -this.elements_element.offsetHeight*0.5-offset.y);
+  this.element.onscroll = (e) => {
+    
+    canvas_element.style.left = this.element.scrollLeft + "px";
+    canvas_element.style.top = this.element.scrollTop + "px";
+    elements_element.style.left = "calc(50% + " + this.element.scrollLeft + "px)";
+    elements_element.style.top = "calc(50% + " + this.element.scrollTop + "px)";
+    
+    this.setTranslation(-(this.element.scrollLeft - this.element.offsetWidth * 0.5), -this.element.scrollTop);
+
+  }
+
+  this.element.scrollLeft = this.element.offsetWidth * 0.5;
+  this.element.scrollTop = this.element.offsetHeight * 0.5;
+
+  updateScroller();
+  
+  this.setTranslation(-this.elements_element.offsetWidth*0.5, -this.elements_element.offsetHeight*0.5);
 
 }
 
@@ -228,8 +255,9 @@ window.onload = (event) => {
   const diagram_root = document.getElementById("diagram-root");
   const diagram_canvas = document.getElementById("diagram-canvas");
   const diagram_elements = document.getElementById("diagram-elements");
+  const diagram_scroller = document.getElementById("diagram-scroller");
 
-  let dia = new Diagram(diagram_root, diagram_canvas, diagram_elements, {x: 10, y: 10});
+  let dia = new Diagram(diagram_root, diagram_canvas, diagram_elements, diagram_scroller);
 
 };
 
