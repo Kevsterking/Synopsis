@@ -151,6 +151,8 @@ function Diagram(element, canvas_element, elements_element, scroller_element) {
   this.mouse_down = { translation: null, is_down: false, x: null, y: null };
   this.delta      = { x: 0, y: 0 };
 
+  this.extent = { x: { min: 0, max: 0 }, y: { min: 0, max: 0 }, width: 0, height: 0 }
+
   const mouseUpAction = (e) => {
     if (this.mouse_down.is_down) {
       this.mouse_down.is_down = false;
@@ -165,9 +167,32 @@ function Diagram(element, canvas_element, elements_element, scroller_element) {
     }
   }
 
-  const updateScroller = () => {
-    this.scroller_element.style.width = (2 * this.element.offsetWidth + this.elements_element.offsetWidth - 200) + "px";
-    this.scroller_element.style.height = (2 * this.element.offsetHeight + this.elements_element.offsetHeight - 200) + "px";
+  this.update = () => {
+
+    /* Update diagram boundries */
+    this.extent.x.min = 100 - (this.elements.offset.x + this.element.clientWidth * 0.5 + this.elements_element.offsetWidth);
+    this.extent.y.min = 100 - (this.elements.offset.y + this.element.clientHeight * 0.5 + this.elements_element.offsetHeight);
+    this.extent.x.max = this.element.clientWidth * 0.5 - this.elements.offset.x - 100;
+    this.extent.y.max = this.element.clientHeight * 0.5 - this.elements.offset.y - 100;
+    this.extent.width = this.extent.x.max - this.extent.x.min;
+    this.extent.height = this.extent.y.max - this.extent.y.min;
+
+    /* Stay within diagram bounds */
+    this.translation.x = Math.min(Math.max(this.translation.x, this.extent.x.min), this.extent.x.max);
+    this.translation.y = Math.min(Math.max(this.translation.y, this.extent.y.min), this.extent.y.max);
+
+    /* Keep scrollbar size updated */
+    this.scroller_element.style.width = (this.element.clientWidth + this.extent.width) + "px";
+    this.scroller_element.style.height = (this.element.clientHeight + this.extent.height) + "px";
+
+    /* Translate elements and grid */
+    this.elements.setTranslation(this.translation.x, this.translation.y);
+    this.grid.setTranslation(this.translation.x, this.translation.y);
+  
+    /* Update elemtns and grid */
+    this.elements.update();
+    this.grid.update();
+
   }
 
   /*
@@ -175,17 +200,11 @@ function Diagram(element, canvas_element, elements_element, scroller_element) {
   */
   this.setTranslation = (x, y) => {
     
-    this.translation.x = Math.max(x, - this.elements.offset.x - this.element.clientWidth * 0.5 - this.elements_element.offsetWidth + 100);
-    this.translation.y = Math.max(y, - this.elements.offset.y - this.element.clientHeight * 0.5 - this.elements_element.offsetHeight + 100);
-    this.translation.x = Math.min(this.translation.x,  this.element.clientWidth * 0.5 - 100 - this.elements.offset.x);
-    this.translation.y = Math.min(this.translation.y,  this.element.clientHeight * 0.5 - 100 - this.elements.offset.y);
-    
-    this.elements.setTranslation(this.translation.x, this.translation.y);
-    this.grid.setTranslation(this.translation.x, this.translation.y);
+    this.translation.x = x;
+    this.translation.y = y;
 
-    this.elements.update();
-    this.grid.update();
-  
+    this.update();
+
   }
 
   this.element.onmousedown = (e) => {
@@ -226,7 +245,7 @@ function Diagram(element, canvas_element, elements_element, scroller_element) {
 
     e.preventDefault();
     this.elements.place(e.x - this.element.offsetWidth * 0.5 - this.translation.x, e.y - this.element.offsetHeight * 0.5 - this.translation.y);
-    updateScroller();
+    this.update();
 
   }
 
@@ -237,16 +256,15 @@ function Diagram(element, canvas_element, elements_element, scroller_element) {
     elements_element.style.left = "calc(50% + " + this.element.scrollLeft + "px)";
     elements_element.style.top = "calc(50% + " + this.element.scrollTop + "px)";
     
-    this.setTranslation(-(this.element.scrollLeft - this.element.offsetWidth * 0.5), -this.element.scrollTop);
+    this.setTranslation(this.extent.width * 0.5 - this.element.scrollLeft, this.extent.height * 0.5 - this.element.scrollTop);
 
   }
 
-  this.element.scrollLeft = this.element.offsetWidth * 0.5;
-  this.element.scrollTop = this.element.offsetHeight * 0.5;
+  this.update();
 
-  updateScroller();
-  
-  this.setTranslation(-this.elements_element.offsetWidth*0.5, -this.elements_element.offsetHeight*0.5);
+  this.element.scrollLeft = this.extent.width * 0.5;
+  this.element.scrollTop = this.extent.height * 0.5;
+
 
 }
 
