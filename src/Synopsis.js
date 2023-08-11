@@ -1,4 +1,4 @@
-function Synopsis() {
+function ynopsis() {
   return <div id="diagram-root" style={{ zIndex: "0", position: "relative", display: "inline-block", overflow: "hidden", width: "1500px", height: "900px", backgroundColor: "rgb(51, 51, 51)" }}>
   
     <div id="diagram-background" style={{ zIndex: "1", position: "absolute", top: "0", left: "0", right: "0", bottom: "0" }}>
@@ -50,7 +50,9 @@ function DiagramGrid(canvas_element) {
     */ 
     this.context.clearRect(0, 0, this.canvas_element.offsetWidth, this.canvas_element.offsetHeight);
 
-    /* Draw vertical gridlines */ 
+    this.context.translate(0.5, 0.5); // This is fucking bizzarre but it works (straddling)
+
+    /* Draw full gridlines */ 
     this.context.beginPath();
     this.context.strokeStyle = "rgb(55, 55, 55)";
     for (let x = this.origin.x % 100 - 50; x < this.canvas_element.offsetWidth; x += 100) {
@@ -64,7 +66,7 @@ function DiagramGrid(canvas_element) {
     this.context.closePath();
     this.context.stroke();
 
-    /* Draw horizontal gridlines */ 
+    /* Draw half gridlines */ 
     this.context.beginPath();
     this.context.strokeStyle = "rgb(60, 60, 60)";
     for (let x = this.origin.x % 100; x < this.canvas_element.offsetWidth; x += 100) {
@@ -79,14 +81,18 @@ function DiagramGrid(canvas_element) {
     this.context.stroke();    
 
     /* Draw origin lines */
+    /*
     this.context.beginPath();
     this.context.strokeStyle = "rgb(70, 70, 70)";
-    this.context.moveTo(this.origin.x, 0);
-    this.context.lineTo(this.origin.x, this.canvas_element.offsetHeight);
-    this.context.moveTo(0, this.origin.y);
-    this.context.lineTo(this.canvas_element.offsetWidth, this.origin.y);
+    this.context.moveTo(this.origin.x + 0.5, 0);
+    this.context.lineTo(this.origin.x + 0.5, this.canvas_element.offsetHeight);
+    this.context.moveTo(0, this.origin.y + 0.5);
+    this.context.lineTo(this.canvas_element.offsetWidth, this.origin.y + 0.5);
     this.context.closePath();
     this.context.stroke();
+    */
+
+    this.context.translate(-0.5, -0.5);
 
   }
 
@@ -94,6 +100,7 @@ function DiagramGrid(canvas_element) {
 
 function DiagramElements(element_container) {
   
+  this.elements = [];
   this.element = element_container;
 
   this.extent = { x: { min: 0, max: 0 }, y: { min: 0, max: 0 } };
@@ -120,6 +127,8 @@ function DiagramElements(element_container) {
 
   }
   
+  return 
+
 }
 
 function Diagram(element, background_element, content_element, canvas_element, elements_element, scroller_element) {
@@ -134,19 +143,16 @@ function Diagram(element, background_element, content_element, canvas_element, e
   this.elements = new DiagramElements(elements_element);
   this.grid     = new DiagramGrid(canvas_element); 
 
-  this.translation = { x: null, y: null };
-
-  const updateScroll = () => {
-    this.setTranslation((this.content_element.scrollWidth - this.element.clientWidth) * 0.5 - this.content_element.scrollLeft, (this.content_element.scrollHeight - this.element.clientHeight) * 0.5 - this.content_element.scrollTop);
-  }
-
   this.update = () => {
+
+    const x = (this.content_element.scrollWidth - this.content_element.offsetWidth) * 0.5 - this.content_element.scrollLeft;
+    const y = (this.content_element.scrollHeight - this.content_element.offsetHeight) * 0.5 - this.content_element.scrollTop;
 
     /* Keep scrollbar size updated */
     this.scroller_element.style.padding = (this.content_element.clientHeight - 100) + "px " + (this.content_element.clientWidth - 100) + "px";
 
     /* Update grid translation */
-    this.grid.setTranslation(this.translation.x - this.elements_element.offsetWidth * 0.5 - this.elements.extent.x.min, this.translation.y - this.elements_element.offsetHeight * 0.5 - this.elements.extent.y.min)
+    this.grid.setTranslation(x - this.elements_element.offsetWidth * 0.5 - this.elements.extent.x.min, y - this.elements_element.offsetHeight * 0.5 - this.elements.extent.y.min)
 
     /* Update grid */
     this.grid.update();
@@ -157,16 +163,10 @@ function Diagram(element, background_element, content_element, canvas_element, e
     Translate the panzoom area to (x, y) 
   */
   this.setTranslation = (x, y) => {
-    this.translation.x = x;
-    this.translation.y = y;
+    this.content_element.scrollLeft = (this.content_element.scrollWidth - this.content_element.offsetWidth) * 0.5 - x;
+    this.content_element.scrollTop = (this.content_element.scrollHeight - this.content_element.offsetHeight) * 0.5 - y;
     this.update();
   }
-
-  const keydownf = (e) => {
-    console.log(e);
-  }
-
-  this.element.addEventListener("keypressed", keydownf, true);
 
   this.scroller_element.oncontextmenu = (e) => {
     e.preventDefault();
@@ -174,16 +174,13 @@ function Diagram(element, background_element, content_element, canvas_element, e
     this.elements.place(e.layerX - this.content_element.clientWidth + 100 + this.elements.extent.x.min, e.layerY - this.content_element.clientHeight + 100 + this.elements.extent.y.min);
     this.content_element.scrollLeft -= (this.elements.extent.x.min - poffs.x);
     this.content_element.scrollTop -= (this.elements.extent.y.min - poffs.y);
-    updateScroll();
     this.update();
   }
 
-  this.content_element.onscroll = updateScroll;
-
+  this.content_element.onscroll = this.update;
+  
   this.update();
-
-  this.content_element.scrollLeft = (this.content_element.scrollWidth - this.content_element.offsetWidth) * 0.5 - this.content_element.scrollLeft;
-  this.content_element.scrollTop =  (this.content_element.scrollHeight - this.content_element.offsetHeight) * 0.5 - this.content_element.scrollTop;
+  this.setTranslation(0, 0);
 
 }
 
@@ -200,4 +197,4 @@ window.onload = (event) => {
 
 };
 
-export default Synopsis;
+export default ynopsis;
