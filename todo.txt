@@ -3,3 +3,5 @@ Consider super resolution or subpixel somehow for the grid as each line looks bi
 Some consideration should be put into panning with scroll instead of dragging. Must be considered what to do with mobile then aswell.
 
 right click menu. (consider appearance like default chrome menu)
+
+fix content not showing beneath scrollbar

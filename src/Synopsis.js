@@ -1,13 +1,32 @@
 function Synopsis() {
-  return <div id="diagram-root" style={{ scrollbarGutter: "stable", position: "relative", overflow: "scroll", width: "1500px", height: "900px", backgroundColor: "rgb(51, 51, 51)" }}>
-    <canvas id="diagram-canvas" style={{ zIndex: "1", position: "absolute", width: "100%", height: "100%" }}>
-    </canvas>
-    <div id="diagram-scroller" style={{ position: "relative", zIndex: "100", display: "block", width: "fit-content", height: "fit-content" }}>
-      <div id="diagram-elements" style={{ display: "block", border: "1px solid white", width: "200px", height: "600px"}}>
-      </div>
+  return <div id="diagram-root" style={{ zIndex: "0", position: "relative", display: "inline-block", overflow: "hidden", width: "1500px", height: "900px", backgroundColor: "rgb(51, 51, 51)" }}>
+  
+    <div id="diagram-background" style={{ zIndex: "1", position: "absolute", top: "0", left: "0", right: "0", bottom: "0" }}>
+      <canvas id="diagram-canvas" style={{ width: "100%", height: "100%" }}>
+      </canvas>
     </div>
+    
+    <div id="diagram-content" style={{ zIndex: "100", overflow: "scroll", position: "absolute", top: "0", left: "0", right: "0", bottom: "0" }}>
+      <div id="diagram-scroller" style={{ position: "relative", float: "left" }}>
+        <div id="diagram-elements" style={{ border: "1px solid white" }}>
+        </div>
+      </div>
+    </div>    
+    
   </div> 
 }
+
+/*  
+    <canvas id="diagram-canvas" style={{ zIndex: "1", position: "absolute", width: "100%", height: "100%" }}>
+      </canvas>
+    
+
+    <div id="diagram-scroller" style={{ border: "2px solid red", zIndex: "100", position: "absolute", top: "0", left: "0", right: "0", bottom: "0", overflow: "scroll", display: "block", width: "fit-content", height: "fit-content" }}>
+      <div id="diagram-elements" style={{ display: "block", border: "1px solid white" }}>
+      </div>
+    </div>
+
+*/
 
 function DiagramGrid(canvas_element) {
 
@@ -61,7 +80,7 @@ function DiagramGrid(canvas_element) {
 
     /* Draw origin lines */
     this.context.beginPath();
-    this.context.strokeStyle = "rgb(65, 65, 65)";
+    this.context.strokeStyle = "rgb(70, 70, 70)";
     this.context.moveTo(this.origin.x, 0);
     this.context.lineTo(this.origin.x, this.canvas_element.offsetHeight);
     this.context.moveTo(0, this.origin.y);
@@ -77,8 +96,7 @@ function DiagramElements(element_container) {
   
   this.element = element_container;
 
-  this.extent = { x: { min: 100, max: this.element.offsetWidth }, y: { min: 100, max: this.element.offsetHeight } };
-  this.offset = { x: 100, y: 100 };
+  this.extent = { x: { min: 0, max: 0 }, y: { min: 0, max: 0 } };
 
   /*
     Check if width and offset need to be changed
@@ -104,12 +122,13 @@ function DiagramElements(element_container) {
   
 }
 
-function Diagram(element, canvas_element, elements_element, scroller_element) {
+function Diagram(element, background_element, content_element, canvas_element, elements_element, scroller_element) {
   
   this.element = element;
+  this.background_element = background_element;
+  this.content_element = content_element;
   this.canvas_element = canvas_element;
   this.elements_element = elements_element;
-  
   this.scroller_element = scroller_element; 
 
   this.elements = new DiagramElements(elements_element);
@@ -118,18 +137,13 @@ function Diagram(element, canvas_element, elements_element, scroller_element) {
   this.translation = { x: null, y: null };
 
   const updateScroll = () => {
-
-    this.canvas_element.style.top = this.element.scrollTop + "px";
-    this.canvas_element.style.left = this.element.scrollLeft + "px";
-  
-    this.setTranslation((this.element.scrollWidth - this.element.clientWidth) * 0.5 - this.element.scrollLeft, (this.element.scrollHeight - this.element.clientHeight) * 0.5 - this.element.scrollTop);
-  
+    this.setTranslation((this.content_element.scrollWidth - this.element.clientWidth) * 0.5 - this.content_element.scrollLeft, (this.content_element.scrollHeight - this.element.clientHeight) * 0.5 - this.content_element.scrollTop);
   }
 
   this.update = () => {
 
     /* Keep scrollbar size updated */
-    this.scroller_element.style.padding = (this.element.clientHeight - 100) + "px " + (this.element.clientWidth - 100) + "px";
+    this.scroller_element.style.padding = (this.content_element.clientHeight - 100) + "px " + (this.content_element.clientWidth - 100) + "px";
 
     /* Update grid translation */
     this.grid.setTranslation(this.translation.x - this.elements_element.offsetWidth * 0.5 - this.elements.extent.x.min, this.translation.y - this.elements_element.offsetHeight * 0.5 - this.elements.extent.y.min)
@@ -148,33 +162,41 @@ function Diagram(element, canvas_element, elements_element, scroller_element) {
     this.update();
   }
 
+  const keydownf = (e) => {
+    console.log(e);
+  }
+
+  this.element.addEventListener("keypressed", keydownf, true);
+
   this.scroller_element.oncontextmenu = (e) => {
     e.preventDefault();
     let poffs = { x: this.elements.extent.x.min, y: this.elements.extent.y.min };
-    this.elements.place(e.layerX - this.element.clientWidth + 100 + this.elements.extent.x.min, e.layerY - this.element.clientHeight + 100 + this.elements.extent.y.min);
-    this.element.scrollLeft -= (this.elements.extent.x.min - poffs.x);
-    this.element.scrollTop -= (this.elements.extent.y.min - poffs.y);
+    this.elements.place(e.layerX - this.content_element.clientWidth + 100 + this.elements.extent.x.min, e.layerY - this.content_element.clientHeight + 100 + this.elements.extent.y.min);
+    this.content_element.scrollLeft -= (this.elements.extent.x.min - poffs.x);
+    this.content_element.scrollTop -= (this.elements.extent.y.min - poffs.y);
     updateScroll();
     this.update();
   }
 
-  this.element.onscroll = updateScroll;
+  this.content_element.onscroll = updateScroll;
 
   this.update();
 
-  this.element.scrollLeft = (this.element.scrollWidth - this.element.offsetWidth) * 0.5 - this.element.scrollLeft;
-  this.element.scrollTop =  (this.element.scrollHeight - this.element.offsetHeight) * 0.5 - this.element.scrollTop;
+  this.content_element.scrollLeft = (this.content_element.scrollWidth - this.content_element.offsetWidth) * 0.5 - this.content_element.scrollLeft;
+  this.content_element.scrollTop =  (this.content_element.scrollHeight - this.content_element.offsetHeight) * 0.5 - this.content_element.scrollTop;
 
 }
 
 window.onload = (event) => {
   
   const diagram_root = document.getElementById("diagram-root");
+  const diagram_background = document.getElementById("diagram-background");
+  const diagram_content = document.getElementById("diagram-content");
   const diagram_canvas = document.getElementById("diagram-canvas");
   const diagram_elements = document.getElementById("diagram-elements");
   const diagram_scroller = document.getElementById("diagram-scroller");
 
-  let dia = new Diagram(diagram_root, diagram_canvas, diagram_elements, diagram_scroller);
+  let dia = new Diagram(diagram_root, diagram_background, diagram_content, diagram_canvas, diagram_elements, diagram_scroller);
 
 };
 
