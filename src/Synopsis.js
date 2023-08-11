@@ -1,8 +1,8 @@
 function Synopsis() {
-  return <div id="diagram-root" style={{ position: "relative", overflow: "scroll", width: "1500px", height: "900px", backgroundColor: "rgb(51, 51, 51)" }}>
-    <canvas id="diagram-canvas" style={{ zIndex: "1", position: "absolute", top: "0", left: "0", width: "100%", height: "100%"}}>
+  return <div id="diagram-root" style={{ scrollbarGutter: "stable", position: "relative", overflow: "scroll", width: "1500px", height: "900px", backgroundColor: "rgb(51, 51, 51)" }}>
+    <canvas id="diagram-canvas" style={{ zIndex: "1", position: "absolute", width: "100%", height: "100%" }}>
     </canvas>
-    <div id="diagram-scroller" style={{ position: "relative", zIndex: "100", display: "block", width: "fit-content", height: "fit-content", border: "2px solid red" }}>
+    <div id="diagram-scroller" style={{ position: "relative", zIndex: "100", display: "block", width: "fit-content", height: "fit-content" }}>
       <div id="diagram-elements" style={{ display: "block", border: "1px solid white", width: "200px", height: "600px"}}>
       </div>
     </div>
@@ -77,29 +77,16 @@ function DiagramElements(element_container) {
   
   this.element = element_container;
 
-  this.extent = { x: { min: 0, max: 0 }, y: { min: 0, max: 0 } };
-  this.offset = { x: 0, y: 0 };
+  this.extent = { x: { min: 100, max: this.element.offsetWidth }, y: { min: 100, max: this.element.offsetHeight } };
+  this.offset = { x: 100, y: 100 };
 
   /*
     Check if width and offset need to be changed
   */
   this.updateBounds = () => {
-  
-    this.offset.x = this.extent.x.min;
-    this.offset.y = this.extent.y.min;
-    
     this.element.style.width = (this.extent.x.max - this.extent.x.min) + "px";
     this.element.style.height = (this.extent.y.max - this.extent.y.min) + "px";
-
   }
-
-  /*
-    Offset the panzoom area by (x, y) 
-  */
-  this.setOffset = (x, y) => {
-    this.offset.x = x;
-    this.offset.y = y;
-  } 
 
   /*
     Expand if necessary to contain all placed elements
@@ -120,8 +107,9 @@ function DiagramElements(element_container) {
 function Diagram(element, canvas_element, elements_element, scroller_element) {
   
   this.element = element;
+  this.canvas_element = canvas_element;
   this.elements_element = elements_element;
-
+  
   this.scroller_element = scroller_element; 
 
   this.elements = new DiagramElements(elements_element);
@@ -129,13 +117,22 @@ function Diagram(element, canvas_element, elements_element, scroller_element) {
 
   this.translation = { x: null, y: null };
 
+  const updateScroll = () => {
+
+    this.canvas_element.style.top = this.element.scrollTop + "px";
+    this.canvas_element.style.left = this.element.scrollLeft + "px";
+  
+    this.setTranslation((this.element.scrollWidth - this.element.clientWidth) * 0.5 - this.element.scrollLeft, (this.element.scrollHeight - this.element.clientHeight) * 0.5 - this.element.scrollTop);
+  
+  }
+
   this.update = () => {
 
     /* Keep scrollbar size updated */
     this.scroller_element.style.padding = (this.element.clientHeight - 100) + "px " + (this.element.clientWidth - 100) + "px";
-    
+
     /* Update grid translation */
-    this.grid.setTranslation(this.translation.x - this.elements_element.offsetWidth * 0.5 - this.elements.offset.x, this.translation.y - this.elements_element.offsetHeight * 0.5 - this.elements.offset.y)
+    this.grid.setTranslation(this.translation.x - this.elements_element.offsetWidth * 0.5 - this.elements.extent.x.min, this.translation.y - this.elements_element.offsetHeight * 0.5 - this.elements.extent.y.min)
 
     /* Update grid */
     this.grid.update();
@@ -153,18 +150,15 @@ function Diagram(element, canvas_element, elements_element, scroller_element) {
 
   this.scroller_element.oncontextmenu = (e) => {
     e.preventDefault();
-    this.elements.place(e.layerX - this.element.offsetWidth + 100, e.layerY - this.element.offsetHeight + 100);
+    let poffs = { x: this.elements.extent.x.min, y: this.elements.extent.y.min };
+    this.elements.place(e.layerX - this.element.clientWidth + 100 + this.elements.extent.x.min, e.layerY - this.element.clientHeight + 100 + this.elements.extent.y.min);
+    this.element.scrollLeft -= (this.elements.extent.x.min - poffs.x);
+    this.element.scrollTop -= (this.elements.extent.y.min - poffs.y);
+    updateScroll();
     this.update();
   }
 
-  this.element.onscroll = (e) => {
-   
-    canvas_element.style.left = this.element.scrollLeft + "px";
-    canvas_element.style.top = this.element.scrollTop + "px";
-
-    this.setTranslation((this.element.scrollWidth - this.element.offsetWidth) * 0.5 - this.element.scrollLeft, (this.element.scrollHeight - this.element.offsetHeight) * 0.5 - this.element.scrollTop);
-  
-  }
+  this.element.onscroll = updateScroll;
 
   this.update();
 

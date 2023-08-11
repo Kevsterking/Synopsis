@@ -3,3 +3,28 @@
   margin: 0;
   box-sizing: border-box;
 }
+
+/* Firefox */
+* {
+  scrollbar-width: thick;
+  scrollbar-color: #757575;
+}
+
+/* Chrome, Edge and Safari */
+*::-webkit-scrollbar {
+  width: 15px;
+  height: 15px;
+}
+
+*::-webkit-scrollbar-thumb {
+  border-radius: 0px;
+  background-color: #757575;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: #8E8E8E;
+}
+
+*::-webkit-scrollbar-thumb:active {
+  background-color: #BFBFBF;
+}
