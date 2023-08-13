@@ -1,3 +1,4 @@
+import { toHaveDisplayValue } from '@testing-library/jest-dom/matchers';
 import React from 'react';
 
 function Synopsis() {
@@ -73,7 +74,27 @@ function DiagramGrid() {
 
 }
 
+function DiagramNode(container, x, y) {
+
+  this.container = container;
+
+  this.x = x;
+  this.y = y;
+
+  this.render = () => {
+    return (
+      <div style={{position: "absolute", left: this.x - this.container.extent.x.min, top: this.y - this.container.extent.y.min }}>
+        HELLO WORLD!
+      </div>
+    ); 
+  }
+
+}
+
 function DiagramContent() {
+
+  this.nodes    = [];
+  this.setNodes = null;
 
   this.init = (root) => {
 
@@ -94,6 +115,13 @@ function DiagramContent() {
     */
     this.place = (x, y) => {
 
+      const newNode = new DiagramNode(this, x, y);
+
+      this.nodes.push(newNode);
+      this.setNodes(this.nodes);
+     
+
+
       if (x > this.extent.x.max) this.extent.x.max = x;
       else if (x < this.extent.x.min) this.extent.x.min = x;
       if (y > this.extent.y.max) this.extent.y.max = y;
@@ -107,11 +135,21 @@ function DiagramContent() {
   }
 
   this.render = () => {
+
+    const [nodes, setNodes] = React.useState([]);
+    
+    this.setNodes = () => {
+      setNodes(this.nodes.map((node) => node.render()));
+    };
+
     return (
-      <div className="diagram-elements" style={{ border: "1px solid white" }}>
+      <div className="diagram-elements" style={{ position: "relative", border: "1px solid white" }}>
+        { nodes }
       </div>
     );
+
   }
+
 
 }
 
