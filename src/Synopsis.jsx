@@ -74,16 +74,14 @@ function DiagramGrid() {
 
 }
 
-function DiagramNode(container, x, y) {
-
-  this.container = container;
+function DiagramNode(x, y) {
 
   this.x = x;
   this.y = y;
 
   this.render = () => {
     return (
-      <div style={{position: "absolute", left: this.x - this.container.extent.x.min, top: this.y - this.container.extent.y.min }}>
+      <div style={{position: "absolute", boxShadow: "rgba(0, 0, 0, 0.2) 0px 60px 40px -7px", backgroundColor: "rgba(140, 140, 140)", cursor: "pointer", padding: "15px", color: "white", left: this.x, top: this.y }}>
         HELLO WORLD!
       </div>
     ); 
@@ -99,36 +97,30 @@ function DiagramContent() {
   this.init = (root) => {
 
     this.element = root;
-  
-    this.extent = { x: { min: 0, max: 0 }, y: { min: 0, max: 0 } };
+    this.translator_element = root.querySelector(".diagram-nodes-translator");
 
-    /*
-      Check if width and offset need to be changed
-    */
-    this.updateBounds = () => {
-      this.element.style.width = (this.extent.x.max - this.extent.x.min) + "px";
-      this.element.style.height = (this.extent.y.max - this.extent.y.min) + "px";
-    }
+    this.extent = { x: { min: 0, max: 0 }, y: { min: 0, max: 0 } };
 
     /*
       Expand if necessary to contain all placed elements
     */
     this.place = (x, y) => {
 
-      const newNode = new DiagramNode(this, x, y);
+      const newNode = new DiagramNode(x, y);
 
       this.nodes.push(newNode);
       this.setNodes(this.nodes);
-     
-
 
       if (x > this.extent.x.max) this.extent.x.max = x;
       else if (x < this.extent.x.min) this.extent.x.min = x;
       if (y > this.extent.y.max) this.extent.y.max = y;
       else if (y < this.extent.y.min) this.extent.y.min = y;
-  
-      this.updateBounds();
-  
+
+      this.translator_element.style.transform = "translate(" + (-this.extent.x.min) + "px, " + (-this.extent.y.min) + "px)";
+
+      this.element.style.width = (this.extent.x.max - this.extent.x.min) + "px";
+      this.element.style.height = (this.extent.y.max - this.extent.y.min) + "px";
+      
     }
 
 
@@ -143,8 +135,10 @@ function DiagramContent() {
     };
 
     return (
-      <div className="diagram-elements" style={{ position: "relative", border: "1px solid white" }}>
-        { nodes }
+      <div className="diagram-nodes" style={{ border: "1px solid white" }}>
+        <div className="diagram-nodes-translator">
+          { nodes }
+        </div>
       </div>
     );
 
@@ -164,6 +158,8 @@ function Diagram() {
     Perform certain action as the component mounts
   */
   const onload = () => {
+
+    console.log("window load");
 
     this.element = document.getElementById(this.id);
     this.dynamic_foreground = this.element.querySelector(".diagram-dynamic-foreground");
@@ -205,7 +201,6 @@ function Diagram() {
     */
     this.content_container.oncontextmenu = (e) => {
       e.preventDefault();
-      console.log(this.content);
       let poffs = { x: this.content.extent.x.min, y: this.content.extent.y.min };
       this.content.place(e.layerX - this.dynamic_foreground.clientWidth + 100 + this.content.extent.x.min, e.layerY - this.dynamic_foreground.clientHeight + 100 + this.content.extent.y.min);
       this.dynamic_foreground.scrollLeft -= (this.content.extent.x.min - poffs.x);
