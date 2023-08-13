@@ -5,3 +5,7 @@ Some consideration should be put into panning with scroll instead of dragging. M
 right click menu. (consider appearance like default chrome menu)
 
 fix content not showing beneath scrollbar
+
+Fix mouse offset rightclicking inside children of content
+
+Fix 

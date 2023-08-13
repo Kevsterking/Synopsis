@@ -1,248 +1,255 @@
-import { toHaveDisplayValue } from '@testing-library/jest-dom/matchers';
 import React from 'react';
 
-function Synopsis() {
-  return (new Diagram()).render();
-}
+/*
+=========================================================================
 
-function DiagramGrid() {
+  GRID
 
-  this.init = (root) => {
+=========================================================================
+*/
 
-    this.element = root;
+function DiagramGrid(prop) {
 
-    this.context = this.element.getContext("2d");
-    this.context.canvas.width = this.element.offsetWidth;
-    this.context.canvas.height = this.element.offsetHeight;
-  
-    this.origin = { x: 0, y: 0 };
-  
-    this.setTranslation = (x, y) => {
-      this.origin.x = this.context.canvas.width * 0.5 + x;
-      this.origin.y = this.context.canvas.height * 0.5 + y;
-    }
+  const obj_ref = React.useRef({});
 
-    this.update = () => {
+  const element_ref = React.useRef(null);
+
+  obj_ref.current.origin = { x: 0, y: 0 };
+
+  React.useEffect(() => {
+
+    const obj = obj_ref.current;
+
+    obj.element = element_ref.current;
+
+    obj.context = obj.element.getContext("2d");
+    obj.context.canvas.width = obj.element.offsetWidth;
+    obj.context.canvas.height = obj.element.offsetHeight;
+
+    obj.update = () => {
 
       /*
         Clear the canvas before drawing new gridlines
       */ 
-      this.context.clearRect(0, 0, this.element.offsetWidth, this.element.offsetHeight);
+      obj.context.clearRect(0, 0, obj.element.offsetWidth, obj.element.offsetHeight);
   
-      this.context.translate(0.5, 0.5); // This is fucking bizzarre but it works (straddling)
+      obj.context.translate(0.5, 0.5); // This is fucking bizzarre but it works (straddling)
   
       /* Draw full gridlines */ 
-      this.context.beginPath();
-      this.context.strokeStyle = "rgb(55, 55, 55)";
-      for (let x = this.origin.x % 100 - 50; x < this.element.offsetWidth; x += 100) {
-        this.context.moveTo(x, 0);
-        this.context.lineTo(x, this.element.offsetHeight);
+      obj.context.beginPath();
+      obj.context.strokeStyle = "rgb(55, 55, 55)";
+      for (let x = obj.origin.x % 100 - 50; x < obj.element.offsetWidth; x += 100) {
+        obj.context.moveTo(x, 0);
+        obj.context.lineTo(x, obj.element.offsetHeight);
       }
-      for (let y = this.origin.y % 100 - 50; y < this.element.offsetWidth; y += 100) {
-        this.context.moveTo(0, y);
-        this.context.lineTo(this.element.offsetWidth, y);
+      for (let y = obj.origin.y % 100 - 50; y < obj.element.offsetWidth; y += 100) {
+        obj.context.moveTo(0, y);
+        obj.context.lineTo(obj.element.offsetWidth, y);
       }
-      this.context.closePath();
-      this.context.stroke();
+      obj.context.closePath();
+      obj.context.stroke();
   
       /* Draw half gridlines */ 
-      this.context.beginPath();
-      this.context.strokeStyle = "rgb(60, 60, 60)";
-      for (let x = this.origin.x % 100; x < this.element.offsetWidth; x += 100) {
-        this.context.moveTo(x, 0);
-        this.context.lineTo(x, this.element.offsetHeight);
+      obj.context.beginPath();
+      obj.context.strokeStyle = "rgb(60, 60, 60)";
+      for (let x = obj.origin.x % 100; x < obj.element.offsetWidth; x += 100) {
+        obj.context.moveTo(x, 0);
+        obj.context.lineTo(x, obj.element.offsetHeight);
       }
-      for (let y = this.origin.y % 100; y < this.element.offsetWidth; y += 100) {
-        this.context.moveTo(0, y);
-        this.context.lineTo(this.element.offsetWidth, y);
+      for (let y = obj.origin.y % 100; y < obj.element.offsetWidth; y += 100) {
+        obj.context.moveTo(0, y);
+        obj.context.lineTo(obj.element.offsetWidth, y);
       }
-      this.context.closePath();
-      this.context.stroke();    
+      obj.context.closePath();
+      obj.context.stroke();    
   
-      this.context.translate(-0.5, -0.5);
+      obj.context.translate(-0.5, -0.5);
   
+    };
+ 
+    obj.setTranslation = (x, y) => {
+      obj.origin.x = obj.context.canvas.width * 0.5 + x;
+      obj.origin.y = obj.context.canvas.height * 0.5 + y;
     }
 
-  }
+    if (prop && prop.obj_ref) prop.obj_ref.current = obj;
 
-  this.render = () => {
-    return (
-      <canvas className="diagram-canvas" style={{ zIndex: "1", position: "absolute", width: "100%", height: "100%" }}>
-      </canvas>
-    );
-  }
+  });
+
+  return (
+    <canvas ref={element_ref} className="diagram-canvas" style={{ zIndex: "1", position: "absolute", width: "100%", height: "100%" }}>
+    </canvas>
+  );
 
 }
+
+/*
+=========================================================================
+
+  NODE
+
+=========================================================================
+*/
 
 function DiagramNode(x, y) {
-
-  this.x = x;
-  this.y = y;
-
-  this.render = () => {
-    return (
-      <div style={{position: "absolute", boxShadow: "rgba(0, 0, 0, 0.2) 0px 60px 40px -7px", backgroundColor: "rgba(140, 140, 140)", cursor: "pointer", padding: "15px", color: "white", left: this.x, top: this.y }}>
-        HELLO WORLD!
-      </div>
-    ); 
-  }
-
+  return (
+    <div style={{position: "absolute", boxShadow: "rgba(0, 0, 0, 0.2) 0px 60px 40px -7px", backgroundColor: "rgba(140, 140, 140)", cursor: "pointer", padding: "15px", color: "white", left: x, top: y }}>
+      HELLO WORLD!
+    </div>
+  ); 
 }
 
-function DiagramContent() {
+/*
+=========================================================================
 
-  this.nodes    = [];
-  this.setNodes = null;
+  CONTENT
 
-  this.init = (root) => {
+=========================================================================
+*/
 
-    this.element = root;
-    this.translator_element = root.querySelector(".diagram-nodes-translator");
+function DiagramContent(prop) {
+  
+  const [nodes, setNodes] = React.useState([]);
 
-    this.extent = { x: { min: 0, max: 0 }, y: { min: 0, max: 0 } };
+  const obj_ref = React.useRef({
+    nodes: nodes,
+    extent: { x: { min: 0, max: 0 }, y: { min: 0, max: 0 } }
+  });
 
-    /*
-      Expand if necessary to contain all placed elements
-    */
-    this.place = (x, y) => {
+  const element_ref     = React.useRef(null);
+  const translator_ref  = React.useRef(null);
 
-      const newNode = new DiagramNode(x, y);
+  React.useEffect(() => {
 
-      this.nodes.push(newNode);
-      this.setNodes(this.nodes);
+    const obj = obj_ref.current;
 
-      if (x > this.extent.x.max) this.extent.x.max = x;
-      else if (x < this.extent.x.min) this.extent.x.min = x;
-      if (y > this.extent.y.max) this.extent.y.max = y;
-      else if (y < this.extent.y.min) this.extent.y.min = y;
+    obj.element    = element_ref.current;
+    obj.translator = translator_ref.current; 
 
-      this.translator_element.style.transform = "translate(" + (-this.extent.x.min) + "px, " + (-this.extent.y.min) + "px)";
+    obj.place = (x, y) => {
 
-      this.element.style.width = (this.extent.x.max - this.extent.x.min) + "px";
-      this.element.style.height = (this.extent.y.max - this.extent.y.min) + "px";
+      obj.nodes.push(new DiagramNode(x, y));
+      setNodes(obj.nodes.map((node) => node));
+  
+      if (x > obj.extent.x.max) obj.extent.x.max = x;
+      else if (x < obj.extent.x.min) obj.extent.x.min = x;
+      if (y > obj.extent.y.max) obj.extent.y.max = y;
+      else if (y < obj.extent.y.min) obj.extent.y.min = y;
+  
+      obj.translator.style.transform = "translate(" + (-obj.extent.x.min) + "px, " + (-obj.extent.y.min) + "px)";
+  
+      obj.element.style.width = (obj.extent.x.max - obj.extent.x.min) + "px";
+      obj.element.style.height = (obj.extent.y.max - obj.extent.y.min) + "px";
       
-    }
-
-
-  }
-
-  this.render = () => {
-
-    const [nodes, setNodes] = React.useState([]);
-    
-    this.setNodes = () => {
-      setNodes(this.nodes.map((node) => node.render()));
     };
 
-    return (
-      <div className="diagram-nodes" style={{ border: "1px solid white" }}>
-        <div className="diagram-nodes-translator">
-          { nodes }
-        </div>
+    if (prop && prop.obj_ref) prop.obj_ref.current = obj;
+
+  });
+
+  return (
+    <div ref={element_ref} className="diagram-nodes" style={{ border: "1px solid white" }}>
+      <div ref={translator_ref} className="diagram-nodes-translator">
+        { nodes }
       </div>
-    );
-
-  }
-
+    </div>
+  );
 
 }
 
-function Diagram() {
+/*
+=========================================================================
+
+  DIAGRAM
+
+=========================================================================
+*/
+
+function Diagram(prop) {
+
+  const obj_ref = React.useRef({});
+
+  const content_obj_ref     = React.useRef(null);
+  const background_obj_ref  = React.useRef(null);
+
+  const element_ref   = React.useRef(null);
+  const scroller_ref  = React.useRef(null);
+  const container_ref = React.useRef(null);
   
-  this.id = React.useId();
-  
-  this.content    = new DiagramContent();
-  this.background = new DiagramGrid(); 
+  obj_ref.current.id = React.useId();
 
-  /*
-    Perform certain action as the component mounts
-  */
-  const onload = () => {
+  React.useEffect(() => {
 
-    console.log("window load");
+    const obj = obj_ref.current;
 
-    this.element = document.getElementById(this.id);
-    this.dynamic_foreground = this.element.querySelector(".diagram-dynamic-foreground");
-    this.content_container = this.element.querySelector(".diagram-content-container");
+    obj.content    = content_obj_ref.current;
+    obj.background = background_obj_ref.current;
+    
+    obj.element    = element_ref.current;
+    obj.scroller   = scroller_ref.current;
+    obj.container  = container_ref.current;
 
-    this.content.init(this.element.querySelector(".diagram-content-container > *"));
-    this.background.init(this.element.querySelector(".diagram-static-background > *"));
+    obj.update = () => {
 
-    /*
-      Update state of diagram
-    */
-    this.update = () => {
-
-      const x = (this.dynamic_foreground.scrollWidth - this.dynamic_foreground.offsetWidth) * 0.5 - this.dynamic_foreground.scrollLeft;
-      const y = (this.dynamic_foreground.scrollHeight - this.dynamic_foreground.offsetHeight) * 0.5 - this.dynamic_foreground.scrollTop;
+      const x = (obj.scroller.scrollWidth - obj.scroller.offsetWidth) * 0.5 - obj.scroller.scrollLeft;
+      const y = (obj.scroller.scrollHeight - obj.scroller.offsetHeight) * 0.5 - obj.scroller.scrollTop;
   
       /* Keep scrollbar size updated */
-      this.content_container.style.padding = (this.dynamic_foreground.clientHeight - 100) + "px " + (this.dynamic_foreground.clientWidth - 100) + "px";
-
+      obj.container.style.padding = (obj.scroller.clientHeight - 100) + "px " + (obj.scroller.clientWidth - 100) + "px";
+  
       /* Update background translation */
-      this.background.setTranslation(x - this.content.element.offsetWidth * 0.5 - this.content.extent.x.min, y - this.content.element.offsetHeight * 0.5 - this.content.extent.y.min)
+      obj.background.setTranslation(x - obj.content.element.offsetWidth * 0.5 - obj.content.extent.x.min, y - obj.content.element.offsetHeight * 0.5 - obj.content.extent.y.min)
   
       /* Update background */
-      this.background.update();
+      obj.background.update();
   
+    };
+
+    obj.setTranslation = (x, y) => {
+      obj.scroller.scrollLeft = (obj.scroller.scrollWidth - obj.scroller.offsetWidth) * 0.5 - x;
+      obj.scroller.scrollTop = (obj.scroller.scrollHeight - obj.scroller.offsetHeight) * 0.5 - y;
+      obj.update();
     }
 
-    /*
-      Translate the panzoom area to (x, y) 
-    */
-    this.setTranslation = (x, y) => {
-      this.dynamic_foreground.scrollLeft = (this.dynamic_foreground.scrollWidth - this.dynamic_foreground.offsetWidth) * 0.5 - x;
-      this.dynamic_foreground.scrollTop = (this.dynamic_foreground.scrollHeight - this.dynamic_foreground.offsetHeight) * 0.5 - y;
-      this.update();
-    }
-
-    /*
-      Handle right clicks
-    */
-    this.content_container.oncontextmenu = (e) => {
+    obj.container.oncontextmenu = (e) => {
       e.preventDefault();
-      let poffs = { x: this.content.extent.x.min, y: this.content.extent.y.min };
-      this.content.place(e.layerX - this.dynamic_foreground.clientWidth + 100 + this.content.extent.x.min, e.layerY - this.dynamic_foreground.clientHeight + 100 + this.content.extent.y.min);
-      this.dynamic_foreground.scrollLeft -= (this.content.extent.x.min - poffs.x);
-      this.dynamic_foreground.scrollTop -= (this.content.extent.y.min - poffs.y);
-      this.update();
+      const poffs = { x: obj.content.extent.x.min, y: obj.content.extent.y.min };
+      obj.content.place(e.layerX - obj.scroller.clientWidth + 100 + obj.content.extent.x.min, e.layerY - obj.scroller.clientHeight + 100 + obj.content.extent.y.min);
+      obj.scroller.scrollLeft -= (obj.content.extent.x.min - poffs.x);
+      obj.scroller.scrollTop -= (obj.content.extent.y.min - poffs.y);
+      obj.update();
     }
 
-    this.dynamic_foreground.onscroll = this.update;
-  
-    this.update();
-    this.setTranslation(0, 0);
+    obj.scroller.onscroll = obj.update;
 
-  }
+    obj.update();
+    obj.setTranslation(0, 0);
 
-  window.onload = onload;
+    if (prop && prop.obj_ref) prop.obj_ref.current = obj;
 
-  this.render = () => {
+  });
 
-    return (
-      <div className="diagram-root" id={this.id} style={{ zIndex: "0", position: "relative", display: "inline-block", overflow: "hidden", width: "1500px", height: "900px", backgroundColor: "rgb(51, 51, 51)" }}>
-      
-        <div className="diagram-static-background" style={{ zIndex: "1", position: "absolute", top: "0", left: "0", right: "0", bottom: "0" }}>
-        
-          {this.background.render()}
-        
-        </div>
-      
-        <div className="diagram-dynamic-foreground" style={{ zIndex: "100", overflow: "scroll", position: "absolute", top: "0", left: "0", right: "0", bottom: "0" }}>
-          
-          <div className="diagram-content-container" style={{ position: "relative", float: "left" }}>
-            
-            {this.content.render()}
-          
-          </div>
-
-        </div>
-
+  return (
+    <div className="diagram-root" ref={element_ref} id={obj_ref.current.id} style={{ zIndex: "0", position: "relative", display: "inline-block", overflow: "hidden", width: "1500px", height: "900px", backgroundColor: "rgb(51, 51, 51)" }}>
+      <div className="diagram-static-background" style={{ zIndex: "1", position: "absolute", top: "0", left: "0", right: "0", bottom: "0" }}>
+        <DiagramGrid obj_ref={background_obj_ref}></DiagramGrid>
       </div>
-    );
-      
-  }
+      <div className="diagram-dynamic-foreground" ref={scroller_ref} style={{ zIndex: "100", overflow: "scroll", position: "absolute", top: "0", left: "0", right: "0", bottom: "0" }}>
+        <div className="diagram-content-container" ref={container_ref} style={{ position: "relative", float: "left" }}>
+          <DiagramContent obj_ref={content_obj_ref}></DiagramContent>
+        </div>
+      </div>
+    </div>
+  );
 
 }
 
-export default Synopsis;
+/*
+=========================================================================
+
+  EXPORT
+
+=========================================================================
+*/
+
+export default function Synopsis() { return <Diagram></Diagram> }
