@@ -91,12 +91,56 @@ function DiagramGrid(prop) {
 =========================================================================
 */
 
-function DiagramNode(x, y) {
+function DiagramNode(prop) {
+  
+  const obj_ref = React.useRef({
+    is_placed: false,
+    element: null,
+    x: prop.x,
+    y: prop.y,
+    extent: { x: { min: 0, max: 0 }, y: { min: 0, max: 0 } }
+  });
+
+  const element_ref = React.useRef(null);
+
+  React.useEffect(() =>  {
+
+    const obj = obj_ref.current;
+
+    obj.element = element_ref.current;
+
+    if (!obj.is_placed) {
+
+      console.log("place node", obj.element.offsetWidth);
+
+      obj.x -= obj.element.offsetWidth * 0.5;
+      obj.y -= obj.element.offsetHeight * 0.5;
+
+      obj.element.style.left = obj.x + "px";
+      obj.element.style.top = obj.y + "px";
+      
+      obj.extent.x.min = obj.x;
+      obj.extent.y.min = obj.y;
+      
+      obj.extent.x.max = obj.x + obj.element.offsetWidth;
+      obj.extent.y.max = obj.y + obj.element.offsetHeight;
+
+      obj.is_placed = true;
+
+    }
+
+    obj_ref.current = obj;
+
+    if (prop && prop.obj_ref) prop.obj_ref.current = obj;
+
+  });
+
   return (
-    <div style={{position: "absolute", boxShadow: "rgba(0, 0, 0, 0.2) 0px 60px 40px -7px", backgroundColor: "rgba(140, 140, 140)", cursor: "pointer", padding: "15px", color: "white", left: x, top: y }}>
+    <div ref={element_ref} style={{position: "absolute", boxShadow: "rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px", backgroundColor: "rgba(140, 140, 140)", cursor: "pointer", padding: "15px", color: "white" }}>
       HELLO WORLD!
     </div>
-  ); 
+  );
+
 }
 
 /*
@@ -109,40 +153,69 @@ function DiagramNode(x, y) {
 
 function DiagramContent(prop) {
   
-  const [nodes, setNodes] = React.useState([]);
-
+  const [state, setState] = React.useState({
+    placenode: null,
+    nodes: []
+  });
+  
   const obj_ref = React.useRef({
-    nodes: nodes,
     extent: { x: { min: 0, max: 0 }, y: { min: 0, max: 0 } }
   });
 
   const element_ref     = React.useRef(null);
   const translator_ref  = React.useRef(null);
+  const placenode_ref   = React.useRef(null);
 
   React.useEffect(() => {
 
     const obj = obj_ref.current;
+    const placenode_obj = placenode_ref.current;
 
     obj.element    = element_ref.current;
     obj.translator = translator_ref.current; 
 
-    obj.place = (x, y) => {
+    if (state.placenode) {
 
-      obj.nodes.push(new DiagramNode(x, y));
-      setNodes(obj.nodes.map((node) => node));
-  
-      if (x > obj.extent.x.max) obj.extent.x.max = x;
-      else if (x < obj.extent.x.min) obj.extent.x.min = x;
-      if (y > obj.extent.y.max) obj.extent.y.max = y;
-      else if (y < obj.extent.y.min) obj.extent.y.min = y;
+      if (placenode_obj.extent.x.max > obj.extent.x.max) obj.extent.x.max = placenode_obj.extent.x.max;
+      else if (placenode_obj.extent.x.min < obj.extent.x.min) obj.extent.x.min = placenode_obj.extent.x.min;
+      if (placenode_obj.extent.y.max > obj.extent.y.max) obj.extent.y.max = placenode_obj.extent.y.max;
+      else if (placenode_obj.extent.y.min < obj.extent.y.min) obj.extent.y.min = placenode_obj.extent.y.min;
   
       obj.translator.style.transform = "translate(" + (-obj.extent.x.min) + "px, " + (-obj.extent.y.min) + "px)";
   
       obj.element.style.width = (obj.extent.x.max - obj.extent.x.min) + "px";
       obj.element.style.height = (obj.extent.y.max - obj.extent.y.min) + "px";
-      
-    };
 
+      state.placenode.callback();
+
+      setState(
+        (prevState) => {
+          return ({
+            ...prevState,
+            placenode: null,
+            nodes: [...prevState.nodes, prevState.placenode.node]
+          });
+        }
+      );
+
+      return;
+
+    }
+
+    obj.place = (x, y, callback) => {
+      
+      setState(
+        (prevState) => {
+          return ({
+            ...prevState,
+            placenode: { node: <DiagramNode obj_ref={placenode_ref} x={x} y={y}></DiagramNode>, callback: callback },
+          });
+        }
+      );
+
+    };
+    
+    obj_ref.current = obj;
     if (prop && prop.obj_ref) prop.obj_ref.current = obj;
 
   });
@@ -150,7 +223,8 @@ function DiagramContent(prop) {
   return (
     <div ref={element_ref} className="diagram-nodes" style={{ border: "1px solid white" }}>
       <div ref={translator_ref} className="diagram-nodes-translator">
-        { nodes }
+        { state.nodes }
+        { state.placenode ? state.placenode.node : null }
       </div>
     </div>
   );
@@ -212,12 +286,20 @@ function Diagram(prop) {
     }
 
     obj.container.oncontextmenu = (e) => {
+      
       e.preventDefault();
+      
       const poffs = { x: obj.content.extent.x.min, y: obj.content.extent.y.min };
-      obj.content.place(e.layerX - obj.scroller.clientWidth + 100 + obj.content.extent.x.min, e.layerY - obj.scroller.clientHeight + 100 + obj.content.extent.y.min);
-      obj.scroller.scrollLeft -= (obj.content.extent.x.min - poffs.x);
-      obj.scroller.scrollTop -= (obj.content.extent.y.min - poffs.y);
-      obj.update();
+      
+      const placex = e.layerX - obj.scroller.clientWidth + 100 + obj.content.extent.x.min;
+      const placey = e.layerY - obj.scroller.clientHeight + 100 + obj.content.extent.y.min;
+
+      obj.content.place(placex, placey, () => {
+        obj.scroller.scrollLeft -= (obj.content.extent.x.min - poffs.x);
+        obj.scroller.scrollTop -= (obj.content.extent.y.min - poffs.y);
+        obj.update();
+      });
+      
     }
 
     obj.scroller.onscroll = obj.update;
@@ -252,4 +334,11 @@ function Diagram(prop) {
 =========================================================================
 */
 
-export default function Synopsis() { return <Diagram></Diagram> }
+export default function Synopsis() { 
+  return (
+    <>
+      <Diagram></Diagram>
+    </> 
+  );
+
+}
