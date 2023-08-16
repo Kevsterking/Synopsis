@@ -1,5 +1,3 @@
-import React from 'react';
-
 // --------------------------------------------------------------------
 
 // Diagram
@@ -60,8 +58,6 @@ function Diagram(parent_generator) {
   // load procedure
   this.onload = (dom_element) => {
 
-    console.log("loaded diagram");
-
     this.element            = dom_element;
     this.scroller           = this.element.querySelector('*.diagram-dynamic-foreground'); 
     this.container          = this.element.querySelector('*.diagram-content-container');
@@ -109,9 +105,15 @@ function DiagramContent(parent_generator) {
 
   this.extent = { x: { min: null, max: null }, y: { min: null, max: null } };
 
+  this.nodes = [];
+
   this.place = (node, x, y) => {
     
     placeInDOM(node.dom_str, this.translator, node.onload);
+
+    this.nodes.push(node);
+
+    console.log(this.nodes);
 
     node.setPos(x, y);
     node.update();
@@ -121,10 +123,10 @@ function DiagramContent(parent_generator) {
     const miny = node.y + node.extent.y.min; 
     const maxy = node.y + node.extent.y.max;
 
-    if      (minx < this.extent.x.min) this.extent.x.min = minx;
-    else if (maxx > this.extent.x.max) this.extent.x.max = maxx;
-    if      (miny < this.extent.y.min) this.extent.y.min = miny;
-    else if (maxy > this.extent.y.max) this.extent.y.max = maxy;
+    if (minx < this.extent.x.min) this.extent.x.min = minx;
+    if (maxx > this.extent.x.max) this.extent.x.max = maxx;
+    if (miny < this.extent.y.min) this.extent.y.min = miny;
+    if (maxy > this.extent.y.max) this.extent.y.max = maxy;
 
     this.translator.style.transform = "translate(" + (-this.extent.x.min) + "px, " + (-this.extent.y.min) + "px)";
 
@@ -135,8 +137,6 @@ function DiagramContent(parent_generator) {
 
   this.onload = (dom_element) => {
 
-    console.log("loaded content");
-  
     this.element    = dom_element;
     this.translator = this.element.querySelector('*.diagram-nodes-translator');
 
@@ -224,7 +224,6 @@ function DiagramGrid(parent_generator) {
 
   this.onload = (element) => {
     
-    console.log("loaded grid");
     this.element = element;
 
     this.context = this.element.getContext("2d");
@@ -271,6 +270,10 @@ function DiagramNode() {
     this.y = y;
   }
 
+  this.highlight = () => {
+    this.element.style.outline = "1px solid red";
+  }
+
   this.onload = (element) => {
     
     this.element = element;
@@ -287,14 +290,13 @@ function DiagramNode() {
 
   this.dom_str = (
     `
-      <div style='position: absolute; box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px; background-color: rgba(140, 140, 140); cursor: pointer; padding: 15px; color: white;'>
+      <div style='white-space: nowrap; position: absolute; box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px; background-color: rgba(140, 140, 140); cursor: pointer; padding: 15px; color: white;'>
         HELLO WORLD!
       </div>
     `
   );
 
 }
-
 
 // --------------------------------------------------------------------
 
@@ -339,10 +341,3 @@ function placeInDOM(element_string, get_parent_dom, callback) {
 
 }
 
-// --------------------------------------------------------------------
-
-// Export
-
-// --------------------------------------------------------------------
-
-export default Diagram;

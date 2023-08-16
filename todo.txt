@@ -8,4 +8,4 @@ fix content not showing beneath scrollbar
 
 Fix mouse offset rightclicking inside children of content
 
-Fix 
+FIX ISSUE: for some reason after getting too far from origin placing new nodes starts shifting the grid 
