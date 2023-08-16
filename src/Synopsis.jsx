@@ -239,8 +239,34 @@ function DiagramContent(prop) {
 =========================================================================
 */
 
-function Diagram(prop) {
+function Diagram(parent_generator) {
 
+  this.loaded = false;
+
+  this.onload = (dom_element) => {
+
+    console.log(dom_element);
+
+    this.loaded = true;
+    
+  }
+
+  placeInDOM(
+    `
+      <div class="diagram-root" style='z-index: 0; position: relative; display: inline-block; overflow: hidden; width: 1500px; height: 900px; background-color: rgb(51, 51, 51);'>
+        <div class="diagram-static-background" style='z-index: 1; position: absolute; top: 0; left: 0; right: 0; bottom: 0;'>
+        </div>
+        <div class="diagram-dynamic-foreground" style='z-index: 100; overflow: scroll; position: absolute; top: 0; left: 0; right: 0; bottom: 0;'>
+          <div class="diagram-content-container" style='position: relative; float: left;'>
+          </div>
+        </div>
+      </div>
+    `,
+    parent_generator, 
+    this.onload
+  );
+
+  /*
   const obj_ref = React.useRef({});
 
   const content_obj_ref     = React.useRef(null);
@@ -268,13 +294,13 @@ function Diagram(prop) {
       const x = (obj.scroller.scrollWidth - obj.scroller.offsetWidth) * 0.5 - obj.scroller.scrollLeft;
       const y = (obj.scroller.scrollHeight - obj.scroller.offsetHeight) * 0.5 - obj.scroller.scrollTop;
   
-      /* Keep scrollbar size updated */
+      //Keep scrollbar size updated
       obj.container.style.padding = (obj.scroller.clientHeight - 100) + "px " + (obj.scroller.clientWidth - 100) + "px";
   
-      /* Update background translation */
+      // Update background translation
       obj.background.setTranslation(x - obj.content.element.offsetWidth * 0.5 - obj.content.extent.x.min, y - obj.content.element.offsetHeight * 0.5 - obj.content.extent.y.min)
   
-      /* Update background */
+      //Update background
       obj.background.update();
   
     };
@@ -323,6 +349,51 @@ function Diagram(prop) {
       </div>
     </div>
   );
+  */
+
+}
+
+/*
+=========================================================================
+
+  New Place in Dom function
+
+=========================================================================
+*/
+
+
+function placeInDOM(element_string, get_parent_dom, callback) {
+
+  // Creating the node from a string
+  function getHtmlNode(html_string) {
+      const template = document.createElement('template');
+      html_string = html_string.trim(); // Never return a text node of whitespace as the result
+      template.innerHTML = html_string;
+      return template.content.firstChild;
+  }
+
+  // perform action of placing into the dom and creating the node
+  const place_procedure = () => {
+      
+      // check if we are generating the parent dom or if we are already provided with it 
+      const parent_dom = (typeof get_parent_dom == 'function' ? get_parent_dom() : get_parent_dom); 
+      const created_node = getHtmlNode(element_string);
+      parent_dom.appendChild(created_node);
+      callback(created_node);
+  
+  }; 
+
+  if (document.readyState === 'complete') {
+      
+      // Page content has already loaded
+      place_procedure();
+
+  } else {
+      
+      // Page content is still going to load
+      window.addEventListener('load', place_procedure);
+
+  }
 
 }
 
@@ -334,11 +405,4 @@ function Diagram(prop) {
 =========================================================================
 */
 
-export default function Synopsis() { 
-  return (
-    <>
-      <Diagram></Diagram>
-    </> 
-  );
-
-}
+export default Diagram;
