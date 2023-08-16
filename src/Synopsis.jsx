@@ -1,255 +1,84 @@
 import React from 'react';
 
-/*
-=========================================================================
+// --------------------------------------------------------------------
 
-  GRID
+// Diagram
 
-=========================================================================
-*/
-
-function DiagramGrid(prop) {
-
-  const obj_ref = React.useRef({});
-
-  const element_ref = React.useRef(null);
-
-  obj_ref.current.origin = { x: 0, y: 0 };
-
-  React.useEffect(() => {
-
-    const obj = obj_ref.current;
-
-    obj.element = element_ref.current;
-
-    obj.context = obj.element.getContext("2d");
-    obj.context.canvas.width = obj.element.offsetWidth;
-    obj.context.canvas.height = obj.element.offsetHeight;
-
-    obj.update = () => {
-
-      /*
-        Clear the canvas before drawing new gridlines
-      */ 
-      obj.context.clearRect(0, 0, obj.element.offsetWidth, obj.element.offsetHeight);
-  
-      obj.context.translate(0.5, 0.5); // This is fucking bizzarre but it works (straddling)
-  
-      /* Draw full gridlines */ 
-      obj.context.beginPath();
-      obj.context.strokeStyle = "rgb(55, 55, 55)";
-      for (let x = obj.origin.x % 100 - 50; x < obj.element.offsetWidth; x += 100) {
-        obj.context.moveTo(x, 0);
-        obj.context.lineTo(x, obj.element.offsetHeight);
-      }
-      for (let y = obj.origin.y % 100 - 50; y < obj.element.offsetWidth; y += 100) {
-        obj.context.moveTo(0, y);
-        obj.context.lineTo(obj.element.offsetWidth, y);
-      }
-      obj.context.closePath();
-      obj.context.stroke();
-  
-      /* Draw half gridlines */ 
-      obj.context.beginPath();
-      obj.context.strokeStyle = "rgb(60, 60, 60)";
-      for (let x = obj.origin.x % 100; x < obj.element.offsetWidth; x += 100) {
-        obj.context.moveTo(x, 0);
-        obj.context.lineTo(x, obj.element.offsetHeight);
-      }
-      for (let y = obj.origin.y % 100; y < obj.element.offsetWidth; y += 100) {
-        obj.context.moveTo(0, y);
-        obj.context.lineTo(obj.element.offsetWidth, y);
-      }
-      obj.context.closePath();
-      obj.context.stroke();    
-  
-      obj.context.translate(-0.5, -0.5);
-  
-    };
- 
-    obj.setTranslation = (x, y) => {
-      obj.origin.x = obj.context.canvas.width * 0.5 + x;
-      obj.origin.y = obj.context.canvas.height * 0.5 + y;
-    }
-
-    if (prop && prop.obj_ref) prop.obj_ref.current = obj;
-
-  });
-
-  return (
-    <canvas ref={element_ref} className="diagram-canvas" style={{ zIndex: "1", position: "absolute", width: "100%", height: "100%" }}>
-    </canvas>
-  );
-
-}
-
-/*
-=========================================================================
-
-  NODE
-
-=========================================================================
-*/
-
-function DiagramNode(prop) {
-  
-  const obj_ref = React.useRef({
-    is_placed: false,
-    element: null,
-    x: prop.x,
-    y: prop.y,
-    extent: { x: { min: 0, max: 0 }, y: { min: 0, max: 0 } }
-  });
-
-  const element_ref = React.useRef(null);
-
-  React.useEffect(() =>  {
-
-    const obj = obj_ref.current;
-
-    obj.element = element_ref.current;
-
-    if (!obj.is_placed) {
-
-      console.log("place node", obj.element.offsetWidth);
-
-      obj.x -= obj.element.offsetWidth * 0.5;
-      obj.y -= obj.element.offsetHeight * 0.5;
-
-      obj.element.style.left = obj.x + "px";
-      obj.element.style.top = obj.y + "px";
-      
-      obj.extent.x.min = obj.x;
-      obj.extent.y.min = obj.y;
-      
-      obj.extent.x.max = obj.x + obj.element.offsetWidth;
-      obj.extent.y.max = obj.y + obj.element.offsetHeight;
-
-      obj.is_placed = true;
-
-    }
-
-    obj_ref.current = obj;
-
-    if (prop && prop.obj_ref) prop.obj_ref.current = obj;
-
-  });
-
-  return (
-    <div ref={element_ref} style={{position: "absolute", boxShadow: "rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px", backgroundColor: "rgba(140, 140, 140)", cursor: "pointer", padding: "15px", color: "white" }}>
-      HELLO WORLD!
-    </div>
-  );
-
-}
-
-/*
-=========================================================================
-
-  CONTENT
-
-=========================================================================
-*/
-
-function DiagramContent(prop) {
-  
-  const [state, setState] = React.useState({
-    placenode: null,
-    nodes: []
-  });
-  
-  const obj_ref = React.useRef({
-    extent: { x: { min: 0, max: 0 }, y: { min: 0, max: 0 } }
-  });
-
-  const element_ref     = React.useRef(null);
-  const translator_ref  = React.useRef(null);
-  const placenode_ref   = React.useRef(null);
-
-  React.useEffect(() => {
-
-    const obj = obj_ref.current;
-    const placenode_obj = placenode_ref.current;
-
-    obj.element    = element_ref.current;
-    obj.translator = translator_ref.current; 
-
-    if (state.placenode) {
-
-      if (placenode_obj.extent.x.max > obj.extent.x.max) obj.extent.x.max = placenode_obj.extent.x.max;
-      else if (placenode_obj.extent.x.min < obj.extent.x.min) obj.extent.x.min = placenode_obj.extent.x.min;
-      if (placenode_obj.extent.y.max > obj.extent.y.max) obj.extent.y.max = placenode_obj.extent.y.max;
-      else if (placenode_obj.extent.y.min < obj.extent.y.min) obj.extent.y.min = placenode_obj.extent.y.min;
-  
-      obj.translator.style.transform = "translate(" + (-obj.extent.x.min) + "px, " + (-obj.extent.y.min) + "px)";
-  
-      obj.element.style.width = (obj.extent.x.max - obj.extent.x.min) + "px";
-      obj.element.style.height = (obj.extent.y.max - obj.extent.y.min) + "px";
-
-      state.placenode.callback();
-
-      setState(
-        (prevState) => {
-          return ({
-            ...prevState,
-            placenode: null,
-            nodes: [...prevState.nodes, prevState.placenode.node]
-          });
-        }
-      );
-
-      return;
-
-    }
-
-    obj.place = (x, y, callback) => {
-      
-      setState(
-        (prevState) => {
-          return ({
-            ...prevState,
-            placenode: { node: <DiagramNode obj_ref={placenode_ref} x={x} y={y}></DiagramNode>, callback: callback },
-          });
-        }
-      );
-
-    };
-    
-    obj_ref.current = obj;
-    if (prop && prop.obj_ref) prop.obj_ref.current = obj;
-
-  });
-
-  return (
-    <div ref={element_ref} className="diagram-nodes" style={{ border: "1px solid white" }}>
-      <div ref={translator_ref} className="diagram-nodes-translator">
-        { state.nodes }
-        { state.placenode ? state.placenode.node : null }
-      </div>
-    </div>
-  );
-
-}
-
-/*
-=========================================================================
-
-  DIAGRAM
-
-=========================================================================
-*/
+// --------------------------------------------------------------------
 
 function Diagram(parent_generator) {
 
   this.loaded = false;
 
+  const place_procedure = (e) => {
+
+    e.preventDefault();
+    
+    const poffs = { x: this.content.extent.x.min, y: this.content.extent.y.min };
+    
+    const placex = e.layerX - this.scroller.clientWidth + 100 + this.content.extent.x.min;
+    const placey = e.layerY - this.scroller.clientHeight + 100 + this.content.extent.y.min;
+
+    this.content.place(new DiagramNode(), placex, placey);
+
+    this.scroller.scrollLeft -= (this.content.extent.x.min - poffs.x);
+    this.scroller.scrollTop -= (this.content.extent.y.min - poffs.y);
+    this.update();
+    
+  }
+
+  // Update state of diagram
+  this.update = () => {
+    
+    if (!this.loaded) return "not_loaded";
+
+    const x = (this.scroller.scrollWidth -  this.scroller.offsetWidth)  * 0.5 - this.scroller.scrollLeft;
+    const y = (this.scroller.scrollHeight - this.scroller.offsetHeight) * 0.5 - this.scroller.scrollTop;
+
+    //Keep scrollbar size updated
+    this.container.style.padding = (this.scroller.clientHeight - 100) + "px " + (this.scroller.clientWidth - 100) + "px";
+
+    // Update background translation
+    this.background.setTranslation(x - this.content.element.offsetWidth * 0.5 - this.content.extent.x.min, y - this.content.element.offsetHeight * 0.5 - this.content.extent.y.min)
+
+    //Update background
+    this.background.update();
+
+  }
+
+  // Translate view of diagram
+  this.setTranslation = (x, y) => {
+
+    if (!this.loaded) return "not_loaded";
+
+    this.scroller.scrollLeft  = (this.scroller.scrollWidth - this.scroller.offsetWidth) * 0.5 - x;
+    this.scroller.scrollTop   = (this.scroller.scrollHeight - this.scroller.offsetHeight) * 0.5 - y;
+    this.update();
+
+  }
+
+  // load procedure
   this.onload = (dom_element) => {
 
-    console.log(dom_element);
+    console.log("loaded diagram");
+
+    this.element            = dom_element;
+    this.scroller           = this.element.querySelector('*.diagram-dynamic-foreground'); 
+    this.container          = this.element.querySelector('*.diagram-content-container');
+    this.static_background  = this.element.querySelector('*.diagram-static-background');
+
+    this.content    = new DiagramContent(this.container);
+    this.background = new DiagramGrid(this.static_background);   
+    
+    this.container.oncontextmenu  = place_procedure;
+    this.scroller.onscroll        = this.update; 
 
     this.loaded = true;
     
-  }
+    this.update();
+    this.setTranslation(0, 0);
+
+  };
 
   placeInDOM(
     `
@@ -266,102 +95,215 @@ function Diagram(parent_generator) {
     this.onload
   );
 
-  /*
-  const obj_ref = React.useRef({});
+}
 
-  const content_obj_ref     = React.useRef(null);
-  const background_obj_ref  = React.useRef(null);
+// --------------------------------------------------------------------
 
-  const element_ref   = React.useRef(null);
-  const scroller_ref  = React.useRef(null);
-  const container_ref = React.useRef(null);
+// Content
+
+// --------------------------------------------------------------------
+
+function DiagramContent(parent_generator) {
   
-  obj_ref.current.id = React.useId();
+  this.loaded = false;
 
-  React.useEffect(() => {
+  this.extent = { x: { min: null, max: null }, y: { min: null, max: null } };
 
-    const obj = obj_ref.current;
-
-    obj.content    = content_obj_ref.current;
-    obj.background = background_obj_ref.current;
+  this.place = (node, x, y) => {
     
-    obj.element    = element_ref.current;
-    obj.scroller   = scroller_ref.current;
-    obj.container  = container_ref.current;
+    placeInDOM(node.dom_str, this.translator, node.onload);
 
-    obj.update = () => {
+    node.setPos(x, y);
+    node.update();
 
-      const x = (obj.scroller.scrollWidth - obj.scroller.offsetWidth) * 0.5 - obj.scroller.scrollLeft;
-      const y = (obj.scroller.scrollHeight - obj.scroller.offsetHeight) * 0.5 - obj.scroller.scrollTop;
+    const minx = node.x + node.extent.x.min; 
+    const maxx = node.x + node.extent.x.max;
+    const miny = node.y + node.extent.y.min; 
+    const maxy = node.y + node.extent.y.max;
+
+    if      (minx < this.extent.x.min) this.extent.x.min = minx;
+    else if (maxx > this.extent.x.max) this.extent.x.max = maxx;
+    if      (miny < this.extent.y.min) this.extent.y.min = miny;
+    else if (maxy > this.extent.y.max) this.extent.y.max = maxy;
+
+    this.translator.style.transform = "translate(" + (-this.extent.x.min) + "px, " + (-this.extent.y.min) + "px)";
+
+    this.element.style.width = (this.extent.x.max - this.extent.x.min) + "px";
+    this.element.style.height = (this.extent.y.max - this.extent.y.min) + "px";
+
+  }
+
+  this.onload = (dom_element) => {
+
+    console.log("loaded content");
   
-      //Keep scrollbar size updated
-      obj.container.style.padding = (obj.scroller.clientHeight - 100) + "px " + (obj.scroller.clientWidth - 100) + "px";
-  
-      // Update background translation
-      obj.background.setTranslation(x - obj.content.element.offsetWidth * 0.5 - obj.content.extent.x.min, y - obj.content.element.offsetHeight * 0.5 - obj.content.extent.y.min)
-  
-      //Update background
-      obj.background.update();
-  
-    };
+    this.element    = dom_element;
+    this.translator = this.element.querySelector('*.diagram-nodes-translator');
 
-    obj.setTranslation = (x, y) => {
-      obj.scroller.scrollLeft = (obj.scroller.scrollWidth - obj.scroller.offsetWidth) * 0.5 - x;
-      obj.scroller.scrollTop = (obj.scroller.scrollHeight - obj.scroller.offsetHeight) * 0.5 - y;
-      obj.update();
-    }
+    this.loaded = true;
 
-    obj.container.oncontextmenu = (e) => {
-      
-      e.preventDefault();
-      
-      const poffs = { x: obj.content.extent.x.min, y: obj.content.extent.y.min };
-      
-      const placex = e.layerX - obj.scroller.clientWidth + 100 + obj.content.extent.x.min;
-      const placey = e.layerY - obj.scroller.clientHeight + 100 + obj.content.extent.y.min;
+  };
 
-      obj.content.place(placex, placey, () => {
-        obj.scroller.scrollLeft -= (obj.content.extent.x.min - poffs.x);
-        obj.scroller.scrollTop -= (obj.content.extent.y.min - poffs.y);
-        obj.update();
-      });
-      
-    }
-
-    obj.scroller.onscroll = obj.update;
-
-    obj.update();
-    obj.setTranslation(0, 0);
-
-    if (prop && prop.obj_ref) prop.obj_ref.current = obj;
-
-  });
-
-  return (
-    <div className="diagram-root" ref={element_ref} id={obj_ref.current.id} style={{ zIndex: "0", position: "relative", display: "inline-block", overflow: "hidden", width: "1500px", height: "900px", backgroundColor: "rgb(51, 51, 51)" }}>
-      <div className="diagram-static-background" style={{ zIndex: "1", position: "absolute", top: "0", left: "0", right: "0", bottom: "0" }}>
-        <DiagramGrid obj_ref={background_obj_ref}></DiagramGrid>
-      </div>
-      <div className="diagram-dynamic-foreground" ref={scroller_ref} style={{ zIndex: "100", overflow: "scroll", position: "absolute", top: "0", left: "0", right: "0", bottom: "0" }}>
-        <div className="diagram-content-container" ref={container_ref} style={{ position: "relative", float: "left" }}>
-          <DiagramContent obj_ref={content_obj_ref}></DiagramContent>
+  placeInDOM(
+    `
+      <div class="diagram-nodes" style='border: 1px solid white'>
+        <div class="diagram-nodes-translator">
         </div>
       </div>
-    </div>
+    `,
+    parent_generator,
+    this.onload
   );
-  */
 
 }
 
-/*
-=========================================================================
+// --------------------------------------------------------------------
 
-  New Place in Dom function
+// Grid
 
-=========================================================================
-*/
+// --------------------------------------------------------------------
+
+function DiagramGrid(parent_generator) {
+
+  this.loaded = false;
+
+  this.origin = { x: 0, y: 0 };
+
+  // Set the translation of the grid
+  this.setTranslation = (x, y) => {
+
+    if (!this.loaded) return "not_loaded";
+
+    this.origin.x = this.context.canvas.width * 0.5 + x;
+    this.origin.y = this.context.canvas.height * 0.5 + y;
+  
+  }
+
+  // Draw the grid to canvas
+  this.update = () => {
+
+    if (!this.loaded) return "not_loaded";
+
+    // Clear the canvas before drawing new gridlines
+    this.context.clearRect(0, 0, this.element.offsetWidth, this.element.offsetHeight);
+  
+    // This is fucking bizzarre but it works (straddling)
+    this.context.translate(0.5, 0.5); 
+
+    // Draw full gridlines
+    this.context.beginPath();
+    this.context.strokeStyle = "rgb(55, 55, 55)";
+    for (let x = this.origin.x % 100 - 50; x < this.element.offsetWidth; x += 100) {
+      this.context.moveTo(x, 0);
+      this.context.lineTo(x, this.element.offsetHeight);
+    }
+    for (let y = this.origin.y % 100 - 50; y < this.element.offsetWidth; y += 100) {
+      this.context.moveTo(0, y);
+      this.context.lineTo(this.element.offsetWidth, y);
+    }
+    this.context.closePath();
+    this.context.stroke();
+
+    // Draw half gridlines 
+    this.context.beginPath();
+    this.context.strokeStyle = "rgb(60, 60, 60)";
+    for (let x = this.origin.x % 100; x < this.element.offsetWidth; x += 100) {
+      this.context.moveTo(x, 0);
+      this.context.lineTo(x, this.element.offsetHeight);
+    }
+    for (let y = this.origin.y % 100; y < this.element.offsetWidth; y += 100) {
+      this.context.moveTo(0, y);
+      this.context.lineTo(this.element.offsetWidth, y);
+    }
+    this.context.closePath();
+    this.context.stroke();    
+
+    this.context.translate(-0.5, -0.5);
+    
+  };
+
+  this.onload = (element) => {
+    
+    console.log("loaded grid");
+    this.element = element;
+
+    this.context = this.element.getContext("2d");
+    this.context.canvas.width = this.element.offsetWidth;
+    this.context.canvas.height = this.element.offsetHeight;
+
+    this.loaded = true;
+
+  };
+
+  placeInDOM(
+    `
+      <canvas class="diagram-canvas" style='z-index: 1; position: absolute; width: 100%; height: 100%;'>
+      </canvas>
+    `,
+    parent_generator,
+    this.onload
+  );
+
+}
+
+// --------------------------------------------------------------------
+
+// Node
+
+// --------------------------------------------------------------------
+
+function DiagramNode() {
+  
+  this.loaded = false;
+
+  this.x = 0;
+  this.y = 0;
+
+  this.extent = { x: { min: null, max: null }, y: { min: null, max: null } };
+
+  this.update = () => {
+    this.element.style.left = (this.x + this.extent.x.min) + "px"; 
+    this.element.style.top = (this.y + this.extent.y.min) + "px";
+  }
+
+  this.setPos = (x, y) => {
+    this.x = x;
+    this.y = y;
+  }
+
+  this.onload = (element) => {
+    
+    this.element = element;
+
+    this.extent.x.min = -this.element.offsetWidth * 0.5;
+    this.extent.y.min = -this.element.offsetHeight * 0.5;
+
+    this.extent.x.max = -this.extent.x.min;
+    this.extent.y.max = -this.extent.y.min;
+
+    this.loaded = true;
+
+  }
+
+  this.dom_str = (
+    `
+      <div style='position: absolute; box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px; background-color: rgba(140, 140, 140); cursor: pointer; padding: 15px; color: white;'>
+        HELLO WORLD!
+      </div>
+    `
+  );
+
+}
 
 
+// --------------------------------------------------------------------
+
+// New Place in Dom function
+
+// --------------------------------------------------------------------
+
+// Append html node from string to dom element either generated at load 
+// ex. () => document.getElementById('id-here') or simply a dom element by value
 function placeInDOM(element_string, get_parent_dom, callback) {
 
   // Creating the node from a string
@@ -397,12 +339,10 @@ function placeInDOM(element_string, get_parent_dom, callback) {
 
 }
 
-/*
-=========================================================================
+// --------------------------------------------------------------------
 
-  EXPORT
+// Export
 
-=========================================================================
-*/
+// --------------------------------------------------------------------
 
 export default Diagram;
