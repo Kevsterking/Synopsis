@@ -103,35 +103,55 @@ function DiagramContent(parent_generator) {
   
   this.loaded = false;
 
-  this.extent = { x: { min: null, max: null }, y: { min: null, max: null } };
+  this.extent       = { x: { min: null, max: null }, y: { min: null, max: null } };
+  
+  this.extent_tree  = { 
+    x: {
+      min: new AVLTree((a, b) => { return (a.x + a.extent.x.min) < (b.x + b.extent.x.min) }), 
+      max: new AVLTree((a, b) => { return (a.x + a.extent.x.max) > (b.x + b.extent.x.max) })
+    },
+    y: {
+      min: new AVLTree((a, b) => { return (a.y + a.extent.y.min) < (b.y + b.extent.y.min) }), 
+      max: new AVLTree((a, b) => { return (a.y + a.extent.y.max) > (b.y + b.extent.y.max) })
+    }  
+  };
 
   this.nodes = [];
 
-  this.place = (node, x, y) => {
-    
-    placeInDOM(node.dom_str, this.translator, node.onload);
+  this.update = () => {
 
-    this.nodes.push(node);
+    const minx = this.extent_tree.x.min.findMaximum();
+    const maxx = this.extent_tree.x.max.findMaximum();
+    const miny = this.extent_tree.y.min.findMaximum();
+    const maxy = this.extent_tree.y.max.findMaximum();
 
-    console.log(this.nodes);
-
-    node.setPos(x, y);
-    node.update();
-
-    const minx = node.x + node.extent.x.min; 
-    const maxx = node.x + node.extent.x.max;
-    const miny = node.y + node.extent.y.min; 
-    const maxy = node.y + node.extent.y.max;
-
-    if (minx < this.extent.x.min) this.extent.x.min = minx;
-    if (maxx > this.extent.x.max) this.extent.x.max = maxx;
-    if (miny < this.extent.y.min) this.extent.y.min = miny;
-    if (maxy > this.extent.y.max) this.extent.y.max = maxy;
+    this.extent.x.min = minx.x + minx.extent.x.min;
+    this.extent.x.max = maxx.x + maxx.extent.x.max;
+    this.extent.y.min = miny.y + miny.extent.y.min;
+    this.extent.y.max = maxy.y + maxy.extent.y.max;
 
     this.translator.style.transform = "translate(" + (-this.extent.x.min) + "px, " + (-this.extent.y.min) + "px)";
 
     this.element.style.width = (this.extent.x.max - this.extent.x.min) + "px";
     this.element.style.height = (this.extent.y.max - this.extent.y.min) + "px";
+
+  }
+
+  this.place = (node, x, y) => {
+    
+    placeInDOM(node.dom_str, this.translator, node.onload);
+
+    node.setPos(x, y);
+    node.update();
+
+    this.nodes.push(node);
+
+    this.extent_tree.x.min.insert(node);
+    this.extent_tree.x.max.insert(node);
+    this.extent_tree.y.min.insert(node);
+    this.extent_tree.y.max.insert(node);
+
+    this.update();
 
   }
 
