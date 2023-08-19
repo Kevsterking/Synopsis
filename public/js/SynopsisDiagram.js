@@ -33,6 +33,17 @@ function SynopsisDiagram(parent_generator) {
           this.update();
         }
 
+        element.oncontentchange = (e) => {
+          const poffs = { x: this.content.extent.x.min, y: this.content.extent.y.min };
+          this.content.contain_extent.remove_subextent(new_node);
+          new_node.update();
+          this.content.contain_extent.insert_subextent(new_node);
+          this.content.update();
+          this.scroller.scrollLeft -= (this.content.extent.x.min - poffs.x);
+          this.scroller.scrollTop -= (this.content.extent.y.min - poffs.y);
+          this.update();
+        }
+
         placeInDOM(example_content[0], element, (cont) => {
 
           setTimeout(() => {
@@ -108,7 +119,7 @@ function SynopsisDiagram(parent_generator) {
           <div class="diagram-static-background" style='z-index: 1; position: absolute; top: 0; left: 0; right: 0; bottom: 0;'>
           </div>
           <div class="diagram-dynamic-foreground" style='z-index: 100; overflow: scroll; position: absolute; top: 0; left: 0; right: 0; bottom: 0;'>
-            <div class="diagram-content-container" style='position: relative; float: left;'>
+            <div class="diagram-content-container" style='position: relative; overflow: hidden; float: left;'>
             </div>
           </div>
         </div>

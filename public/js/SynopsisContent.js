@@ -41,13 +41,6 @@ function SynopsisContent(parent_generator) {
     
     placeInDOM(node.dom_str, this.translator, (element) => {
       
-      element.oncontentchange = (e) => {
-        this.contain_extent.remove_subextent(node);
-        node.update();
-        this.contain_extent.insert_subextent(node);
-        this.update();
-      }
-
       resize_observer.observe(element);
 
       node.onload(element);
