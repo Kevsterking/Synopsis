@@ -17,7 +17,22 @@ function Diagram(parent_generator) {
     const placex = e.layerX - this.scroller.clientWidth + 100 + this.content.extent.x.min;
     const placey = e.layerY - this.scroller.clientHeight + 100 + this.content.extent.y.min;
 
-    this.content.place(new DiagramNode(), placex, placey);
+    const new_node = new DiagramNode();
+    const pre_load = new_node.onload;
+    new_node.onload = (element) => {
+      pre_load(element);
+      element.onclick = () => {
+        const poffs = { x: this.content.extent.x.min, y: this.content.extent.y.min };
+        this.content.delete(new_node);
+        element.outerHTML = "";
+        this.scroller.scrollLeft -= (this.content.extent.x.min - poffs.x);
+        this.scroller.scrollTop -= (this.content.extent.y.min - poffs.y);
+        delete new_node;
+        this.update();
+      }
+    }
+
+    this.content.place(new_node, placex, placey);
 
     this.scroller.scrollLeft -= (this.content.extent.x.min - poffs.x);
     this.scroller.scrollTop -= (this.content.extent.y.min - poffs.y);
@@ -120,15 +135,17 @@ function DiagramContent(parent_generator) {
 
   this.update = () => {
 
-    const minx = this.extent_tree.x.min.findMaximum();
-    const maxx = this.extent_tree.x.max.findMaximum();
-    const miny = this.extent_tree.y.min.findMaximum();
-    const maxy = this.extent_tree.y.max.findMaximum();
+    const minx = this.extent_tree.x.min.max();
+    const maxx = this.extent_tree.x.max.max();
+    const miny = this.extent_tree.y.min.max();
+    const maxy = this.extent_tree.y.max.max();
 
-    this.extent.x.min = minx.x + minx.extent.x.min;
-    this.extent.x.max = maxx.x + maxx.extent.x.max;
-    this.extent.y.min = miny.y + miny.extent.y.min;
-    this.extent.y.max = maxy.y + maxy.extent.y.max;
+    console.log(minx);
+
+    this.extent.x.min = (minx ? minx.x + minx.extent.x.min : 0);
+    this.extent.x.max = (maxx ? maxx.x + maxx.extent.x.max : 0);
+    this.extent.y.min = (miny ? miny.y + miny.extent.y.min : 0);
+    this.extent.y.max = (maxy ? maxy.y + maxy.extent.y.max : 0);
 
     this.translator.style.transform = "translate(" + (-this.extent.x.min) + "px, " + (-this.extent.y.min) + "px)";
 
@@ -137,21 +154,33 @@ function DiagramContent(parent_generator) {
 
   }
 
+  this.delete = (node) => {
+    this.extent_tree.x.min.delete(node);
+    this.extent_tree.x.max.delete(node);
+    this.extent_tree.y.min.delete(node);
+    this.extent_tree.y.max.delete(node);
+    this.update();
+  }
+
   this.place = (node, x, y) => {
     
-    placeInDOM(node.dom_str, this.translator, node.onload);
+    placeInDOM(node.dom_str, this.translator, (element) => {
+      
+      node.onload(element);
 
-    node.setPos(x, y);
-    node.update();
+      node.setPos(x, y);
+      node.update();
 
-    this.nodes.push(node);
+      this.nodes.push(node);
+  
+      this.extent_tree.x.min.insert(node);
+      this.extent_tree.x.max.insert(node);
+      this.extent_tree.y.min.insert(node);
+      this.extent_tree.y.max.insert(node);
+  
+      this.update();
 
-    this.extent_tree.x.min.insert(node);
-    this.extent_tree.x.max.insert(node);
-    this.extent_tree.y.min.insert(node);
-    this.extent_tree.y.max.insert(node);
-
-    this.update();
+    });
 
   }
 
