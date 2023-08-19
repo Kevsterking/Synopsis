@@ -29,6 +29,53 @@ function AVLTree(compare) {
   
   }
 
+  const _delete_node = (node) => {
+    
+    // If one of the children is empty
+    if (node.left === null) {
+      let temp = node.right;
+      delete node;
+      return temp;
+    } else if (node.right === null) {
+      let temp = node.left;
+      delete node;
+      return temp;
+    }
+  
+    // If both children exist
+    else {
+      
+      let succParent = node;
+  
+      // Find successor
+      let succ = node.right;
+      while (succ.left !== null) {
+        succParent = succ;
+        succ = succ.left;
+      }
+  
+      // Delete successor.  Since successor
+      // is always left child of its parent
+      // we can safely make successor's right
+      // right child as left of its parent.
+      // If there is no succ, then assign
+      // succ.right to succParent.right
+      if (succParent !== node) {
+        succParent.left = succ.right;
+      } else {
+        succParent.right = succ.right;
+      }
+  
+      // Copy Successor Data to node
+      node.key = succ.key;
+  
+      // Delete Successor and return node
+      delete succ;
+      return node;
+    }
+
+  }
+
   const _delete = (node, key) => {
     
     // Base case
@@ -37,49 +84,7 @@ function AVLTree(compare) {
     }
     
     if (key == node.key) {
-     
-      // If one of the children is empty
-      if (node.left === null) {
-        let temp = node.right;
-        delete node;
-        return temp;
-      } else if (node.right === null) {
-        let temp = node.left;
-        delete node;
-        return temp;
-      }
-    
-      // If both children exist
-      else {
-        
-        let succParent = node;
-    
-        // Find successor
-        let succ = node.right;
-        while (succ.left !== null) {
-          succParent = succ;
-          succ = succ.left;
-        }
-    
-        // Delete successor.  Since successor
-        // is always left child of its parent
-        // we can safely make successor's right
-        // right child as left of its parent.
-        // If there is no succ, then assign
-        // succ.right to succParent.right
-        if (succParent !== node) {
-          succParent.left = succ.right;
-        } else {
-          succParent.right = succ.right;
-        }
-    
-        // Copy Successor Data to node
-        node.key = succ.key;
-    
-        // Delete Successor and return node
-        delete succ;
-        return node;
-      }
+      return _delete_node(node);
     }
     else if (this.compare(key, node.key)) {
       node.right = _delete(node.right, key);
@@ -88,12 +93,15 @@ function AVLTree(compare) {
       node.left = _delete(node.left, key);
       return node;
     }
-   
     
   }
 
   const _max = (node) => {
     return (node.right ? _max(node.right) : node);
+  }
+
+  const _count = (node) => {
+    return (node.left ? _count(node.left) : 0) + 1 + (node.right ? _count(node.right) : 0);
   }
 
   this.insert = (key) => {
@@ -108,6 +116,11 @@ function AVLTree(compare) {
     if (!this.root) return null;
     const max_node = _max(this.root); 
     return max_node ? max_node.key : null;
+  }
+
+  this.count = () => {
+    if (!this.root) return 0;
+    return _count(this.root);
   }
 
 
