@@ -69,7 +69,7 @@ function SynopsisContent(parent_generator) {
 
   placeInDOM(
     `
-      <div class="diagram-nodes" style='border: 1px solid white'>
+      <div class="diagram-nodes">
         <div class="diagram-nodes-translator">
         </div>
       </div>

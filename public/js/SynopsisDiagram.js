@@ -7,7 +7,9 @@
 function SynopsisDiagram(parent_generator) {
 
     this.loaded = false;
-  
+
+    this.selected = [];
+
     const place_procedure = (e) => {
   
       e.preventDefault();
@@ -25,12 +27,20 @@ function SynopsisDiagram(parent_generator) {
         pre_load(element);
         
         element.onclick = () => {
+
+          this.selected.forEach((node) => node.dehighlight());
+          this.selected = [];
+          new_node.highlight();
+          this.selected.push(new_node);
+
+          /*
           const poffs = { x: this.content.extent.x.min, y: this.content.extent.y.min };
           this.content.delete(new_node);
           this.scroller.scrollLeft -= (this.content.extent.x.min - poffs.x);
           this.scroller.scrollTop -= (this.content.extent.y.min - poffs.y);
           delete new_node;
           this.update();
+          */
         }
 
         element.oncontentchange = (e) => {
@@ -44,11 +54,15 @@ function SynopsisDiagram(parent_generator) {
           this.update();
         }
 
-        placeInDOM(example_content[0], element, (cont) => {
+        const idx = Math.floor(Math.random()*example_content.length);
 
-          setTimeout(() => {
-            cont.style.padding = "100px";
-          }, 5000);
+        placeInDOM(example_content[idx], element, (cont) => {
+
+          if (!idx) {
+            setTimeout(() => {
+              cont.style.padding = "100px";
+            }, 5000);
+          }
 
         });
 

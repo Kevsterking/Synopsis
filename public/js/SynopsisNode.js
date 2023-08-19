@@ -49,9 +49,18 @@ function SynopsisNode() {
 
   }
 
+  this.highlight = () => {
+    this.element.style.outline = "1px solid red";
+  }
+
+  this.dehighlight = () => {
+    this.element.style.outline = "none";
+  }
+
+
   this.dom_str = (
     `
-      <div style='white-space: nowrap; position: absolute; box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px; cursor: pointer; border: 1px solid red;'>
+      <div style='user-select: none;white-space: nowrap; position: absolute; box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px; cursor: pointer;'>
       </div>
     `
   );

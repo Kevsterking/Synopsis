@@ -59,6 +59,16 @@ function SynopsisGrid(parent_generator) {
     this.context.closePath();
     this.context.stroke();    
 
+     /* Draw origin lines */
+     this.context.beginPath();
+     this.context.strokeStyle = "rgb(80, 80, 80)";
+     this.context.moveTo(this.origin.x, 0);
+     this.context.lineTo(this.origin.x, this.element.offsetHeight);
+     this.context.moveTo(0, this.origin.y);
+     this.context.lineTo(this.element.offsetWidth, this.origin.y);
+     this.context.closePath();
+     this.context.stroke();
+
     this.context.translate(-0.5, -0.5);
     
   };
