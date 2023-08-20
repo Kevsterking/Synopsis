@@ -27,13 +27,11 @@ function SynopsisDiagram(parent_generator) {
       
     }
 
-    const delete_node = (node) => {
-      const poffs = { x: this.content.extent.x.min, y: this.content.extent.y.min };
-      this.content.delete(node);
-      this.scroller.scrollLeft -= (this.content.extent.x.min - poffs.x);
-      this.scroller.scrollTop -= (this.content.extent.y.min - poffs.y);
-      delete node;
-      this.update();
+    const select_node = (node) => {
+      this.selected.forEach((n) => n.dehighlight());
+      this.selected = [];
+      node.highlight();
+      this.selected.push(node);
     }
 
     const node_load = (node) => {
@@ -43,25 +41,9 @@ function SynopsisDiagram(parent_generator) {
       return (element) => {
         
         element.onclick = () => {
-          this.selected.forEach((n) => n.dehighlight());
-          this.selected = [];
-          node.highlight();
-          this.selected.push(node);
-          // delete_node(node);
+          select_node(node);
+          //node.delete();
         }
-
-        /*
-        element.oncontentchange = (e) => {
-          const poffs = { x: this.content.extent.x.min, y: this.content.extent.y.min };
-          this.content.contain_extent.remove_subextent(node);
-          node.update();
-          this.content.contain_extent.insert_subextent(node);
-          this.content.update();
-          this.scroller.scrollLeft -= (this.content.extent.x.min - poffs.x);
-          this.scroller.scrollTop -= (this.content.extent.y.min - poffs.y);
-          this.update();
-        }
-        */
 
         const idx = Math.floor(Math.random()*example_content.length);
         placeInDOM(example_content[idx], element, (cont) => {
@@ -83,7 +65,10 @@ function SynopsisDiagram(parent_generator) {
       const placey = e.layerY - this.scroller.clientHeight + 100 + this.content.extent.y.min;
   
       const new_node = new SynopsisNode();
-      new_node.onload.subscribe(node_load(new_node));
+      new_node.on_load.subscribe(node_load(new_node));
+      new_node.on_delete.subscribe(() => {
+        
+      });
 
       this.content.place(new_node, placex, placey);
   

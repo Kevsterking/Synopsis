@@ -47,7 +47,7 @@ function SynopsisContainExtent() {
     }
 
     this.remove_subextent = (extent) => {
-        
+
         if (!subextent_map.has(extent)) return -1;
         else {
             const extent_kv = subextent_map.get(extent);

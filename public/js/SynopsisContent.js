@@ -32,28 +32,32 @@ function SynopsisContent(parent_generator) {
 
   this.place = (node, x, y) => {
       
-    node.onload.subscribe(() => {
+    node.on_load.subscribe(() => {
       console.log("[Content] - node load");
       this.contain_extent.insert_subextent(node);
       this.on_extent_change.trigger();
-    
     });
 
-    node.onresize.subscribe(() => {
+    node.on_resize.subscribe(() => {
       console.log("[Content] - node resize");
       this.contain_extent.remove_subextent(node);
       this.contain_extent.insert_subextent(node);
       this.on_extent_change.trigger();
     });
 
-    node.onmove.subscribe(() => {
+    node.on_move.subscribe(() => {
       console.log("[Content] - node move");
       this.contain_extent.remove_subextent(node);
       this.contain_extent.insert_subextent(node);
       this.on_extent_change.trigger();
     });
 
-    
+    node.on_delete.subscribe(() => {
+      console.log("[Content] - node delete");
+      this.contain_extent.remove_subextent(node);
+      this.on_extent_change.trigger();
+    });
+
     console.log("");
     console.log("[Content] - pre node spawn");
     node.spawn(this.translator, x, y);
