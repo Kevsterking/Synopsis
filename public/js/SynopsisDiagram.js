@@ -12,6 +12,8 @@ function SynopsisDiagram(parent_generator) {
 
     let prev_extent = { x: { min: 0, max: 0}, y: { min: 0, max: 0 }};
 
+    let ctr_down = false;
+
     const extent_change = () => {
       
       console.log("[Diagram] - extent change");
@@ -28,10 +30,19 @@ function SynopsisDiagram(parent_generator) {
     }
 
     const select_node = (node) => {
-      this.selected.forEach((n) => n.dehighlight());
-      this.selected = [];
+      
+      if (!ctr_down) {
+        this.selected.forEach((n) => n.dehighlight());
+        this.selected = [];
+      }
+
       node.highlight();
       this.selected.push(node);
+    
+    }
+
+    const delete_selected = () => {
+      this.selected.forEach((n) => n.delete());
     }
 
     const node_load = (node) => {
@@ -76,10 +87,33 @@ function SynopsisDiagram(parent_generator) {
     
     this.on_load = new SynopsisEvent();
 
-    this.on_load.subscribe((dom_element) => {
+    this.on_load.subscribe((element) => {
       
+      const key_listen_down = (e) => {
+
+        if (e.key == "Delete") delete_selected();
+        else if (e.key == "Control") ctr_down = true;
+        //  else console.log(e.key);
+      }
+
+      const key_listen_up = (e) => {
+        if (e.key == "Control") ctr_down = false;
+      }
+
+      element.addEventListener("mouseenter", () => {
+        console.log("mouse leave");
+        window.addEventListener("keydown", key_listen_down);
+        window.addEventListener("keyup", key_listen_up);
+      });
+
+      element.addEventListener("mouseleave", (e) => {
+        console.log("mouse enter");
+        window.removeEventListener("keydown", key_listen_down);
+        window.removeEventListener("keydown", key_listen_up);
+      });
+
       // load procedure
-      this.element            = dom_element;
+      this.element            = element;
       this.scroller           = this.element.querySelector('*.diagram-dynamic-foreground'); 
       this.container          = this.element.querySelector('*.diagram-content-container');
       this.static_background  = this.element.querySelector('*.diagram-static-background');
