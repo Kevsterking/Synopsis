@@ -10,72 +10,110 @@ function SynopsisDiagram(parent_generator) {
 
     this.selected = [];
 
-    const place_procedure = (e) => {
-  
-      e.preventDefault();
+    let prev_extent = { x: { min: 0, max: 0}, y: { min: 0, max: 0 }};
+
+    const extent_change = () => {
       
+      console.log("[Diagram] - extent change");
+      
+      const new_extent = this.content.extent;
+      
+      this.scroller.scrollLeft -= (new_extent.x.min - prev_extent.x.min);
+      this.scroller.scrollTop -= (new_extent.y.min - prev_extent.y.min);
+      
+      prev_extent = new_extent;
+
+      this.update();
+      
+    }
+
+    const delete_node = (node) => {
       const poffs = { x: this.content.extent.x.min, y: this.content.extent.y.min };
+      this.content.delete(node);
+      this.scroller.scrollLeft -= (this.content.extent.x.min - poffs.x);
+      this.scroller.scrollTop -= (this.content.extent.y.min - poffs.y);
+      delete node;
+      this.update();
+    }
+
+    const node_load = (node) => {
       
-      const placex = e.layerX - this.scroller.clientWidth + 100 + this.content.extent.x.min;
-      const placey = e.layerY - this.scroller.clientHeight + 100 + this.content.extent.y.min;
-  
-      const new_node = new SynopsisNode();
-      const pre_load = new_node.onload;
-      
-      new_node.onload = (element) => {
-        
-        pre_load(element);
+      console.log("[Diagram] - node load");
+
+      return (element) => {
         
         element.onclick = () => {
-
-          this.selected.forEach((node) => node.dehighlight());
+          this.selected.forEach((n) => n.dehighlight());
           this.selected = [];
-          new_node.highlight();
-          this.selected.push(new_node);
-
-          /*
-          const poffs = { x: this.content.extent.x.min, y: this.content.extent.y.min };
-          this.content.delete(new_node);
-          this.scroller.scrollLeft -= (this.content.extent.x.min - poffs.x);
-          this.scroller.scrollTop -= (this.content.extent.y.min - poffs.y);
-          delete new_node;
-          this.update();
-          */
+          node.highlight();
+          this.selected.push(node);
+          // delete_node(node);
         }
 
+        /*
         element.oncontentchange = (e) => {
           const poffs = { x: this.content.extent.x.min, y: this.content.extent.y.min };
-          this.content.contain_extent.remove_subextent(new_node);
-          new_node.update();
-          this.content.contain_extent.insert_subextent(new_node);
+          this.content.contain_extent.remove_subextent(node);
+          node.update();
+          this.content.contain_extent.insert_subextent(node);
           this.content.update();
           this.scroller.scrollLeft -= (this.content.extent.x.min - poffs.x);
           this.scroller.scrollTop -= (this.content.extent.y.min - poffs.y);
           this.update();
         }
+        */
 
         const idx = Math.floor(Math.random()*example_content.length);
-
         placeInDOM(example_content[idx], element, (cont) => {
-
           if (!idx) {
             setTimeout(() => {
               cont.style.padding = "100px";
             }, 5000);
           }
-
         });
 
       }
+    } 
+
+    const place_procedure = (e) => {
   
+      e.preventDefault();
+            
+      const placex = e.layerX - this.scroller.clientWidth + 100 + this.content.extent.x.min;
+      const placey = e.layerY - this.scroller.clientHeight + 100 + this.content.extent.y.min;
+  
+      const new_node = new SynopsisNode();
+      new_node.onload.subscribe(node_load(new_node));
+
       this.content.place(new_node, placex, placey);
   
-      this.scroller.scrollLeft -= (this.content.extent.x.min - poffs.x);
-      this.scroller.scrollTop -= (this.content.extent.y.min - poffs.y);
-      this.update();
-      
     }
+    
+    this.on_load = new SynopsisEvent();
+
+    this.on_load.subscribe((dom_element) => {
+      
+      // load procedure
+      this.element            = dom_element;
+      this.scroller           = this.element.querySelector('*.diagram-dynamic-foreground'); 
+      this.container          = this.element.querySelector('*.diagram-content-container');
+      this.static_background  = this.element.querySelector('*.diagram-static-background');
   
+      this.content    = new SynopsisContent(this.container);
+      this.background = new SynopsisGrid(this.static_background);   
+      
+      this.content.on_extent_change.subscribe(extent_change);
+
+      this.container.oncontextmenu  = place_procedure;
+      this.scroller.onscroll        = this.update; 
+  
+      this.loaded = true;
+      
+      this.update();
+      this.setTranslation(0, 0);
+  
+    });
+
     // Update state of diagram
     this.update = () => {
       
@@ -105,28 +143,7 @@ function SynopsisDiagram(parent_generator) {
       this.update();
   
     }
-  
-    // load procedure
-    this.onload = (dom_element) => {
-  
-      this.element            = dom_element;
-      this.scroller           = this.element.querySelector('*.diagram-dynamic-foreground'); 
-      this.container          = this.element.querySelector('*.diagram-content-container');
-      this.static_background  = this.element.querySelector('*.diagram-static-background');
-  
-      this.content    = new SynopsisContent(this.container);
-      this.background = new SynopsisGrid(this.static_background);   
-      
-      this.container.oncontextmenu  = place_procedure;
-      this.scroller.onscroll        = this.update; 
-  
-      this.loaded = true;
-      
-      this.update();
-      this.setTranslation(0, 0);
-  
-    };
-  
+    
     placeInDOM(
       `
         <div class="diagram-root" style='z-index: 0; position: relative; display: inline-block; overflow: hidden; width: 1500px; height: 900px; background-color: rgb(51, 51, 51);'>
@@ -139,7 +156,7 @@ function SynopsisDiagram(parent_generator) {
         </div>
       `,
       parent_generator, 
-      this.onload
+      this.on_load.trigger
     );
   
   }
