@@ -8,7 +8,7 @@ function SynopsisDiagram(parent_generator) {
 
     this.loaded = false;
 
-    this.selected = [];
+    this.selected = new Map();
 
     let prev_extent = { x: { min: 0, max: 0}, y: { min: 0, max: 0 }};
 
@@ -31,18 +31,30 @@ function SynopsisDiagram(parent_generator) {
 
     const select_node = (node) => {
       
-      if (!ctr_down) {
-        this.selected.forEach((n) => n.dehighlight());
-        this.selected = [];
-      }
+      if (ctr_down) {
+        
+        if (this.selected.has(node)) {
+          node.dehighlight();
+          this.selected.delete(node);
+        } else {
+          node.highlight();
+          this.selected.set(node, true);
+        }
 
-      node.highlight();
-      this.selected.push(node);
+      } else {
+        
+        this.selected.forEach((_, k) => k.dehighlight());
+        this.selected.clear();
+        node.highlight();
+        this.selected.set(node, true);
+      
+      }
     
     }
 
     const delete_selected = () => {
-      this.selected.forEach((n) => n.delete());
+      this.selected.forEach((v, k) => k.delete());
+      this.selected.clear();
     }
 
     const node_load = (node) => {
@@ -51,7 +63,8 @@ function SynopsisDiagram(parent_generator) {
 
       return (element) => {
         
-        element.onclick = () => {
+        element.onmousedown = (e) => {
+          e.preventDefault();
           select_node(node);
           //node.delete();
         }
@@ -77,10 +90,6 @@ function SynopsisDiagram(parent_generator) {
   
       const new_node = new SynopsisNode();
       new_node.on_load.subscribe(node_load(new_node));
-      new_node.on_delete.subscribe(() => {
-        
-      });
-
       this.content.place(new_node, placex, placey);
   
     }
@@ -100,14 +109,31 @@ function SynopsisDiagram(parent_generator) {
         if (e.key == "Control") ctr_down = false;
       }
 
+      element.addEventListener("mousedown", (e) => {
+        
+        const is_inside_synopsis_node = any_of_parents_satisfies(e.target, (parent) => {
+          try {
+            return parent.classList.contains("synopsis-node");
+          } catch(err) {
+            return false;
+          }
+        });
+
+        if (!is_inside_synopsis_node) {
+          this.selected.forEach((v, k) => k.dehighlight());
+          this.selected.clear();
+        }
+ 
+      });
+
       element.addEventListener("mouseenter", () => {
-        console.log("mouse leave");
+        //console.log("mouse leave");
         window.addEventListener("keydown", key_listen_down);
         window.addEventListener("keyup", key_listen_up);
       });
 
       element.addEventListener("mouseleave", (e) => {
-        console.log("mouse enter");
+        //console.log("mouse enter");
         window.removeEventListener("keydown", key_listen_down);
         window.removeEventListener("keydown", key_listen_up);
       });

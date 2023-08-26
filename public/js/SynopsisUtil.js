@@ -40,3 +40,18 @@ function placeInDOM(element_string, get_parent_dom, callback) {
   }
 
 }
+
+function get_parents(element) {
+  let ret = [];
+  for (let el = element.parentNode; el; el = el.parentNode) ret.push(el);
+  return ret;
+}
+
+function any_of_parents_satisfies(element, f) {
+  let ret = false;
+  const parents = get_parents(element);
+  parents.forEach((parent) => {
+    if (f(parent)) ret = parent;
+  });
+  return ret;
+}
