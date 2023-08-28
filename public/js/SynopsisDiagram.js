@@ -85,14 +85,15 @@ function SynopsisDiagram(parent_generator) {
         if (e.button != 0) return;
         
         select_node(node);
-        
+
         if (this.selected.has(node)) {
           
           const place_cord = this.get_relative_mouse_pos(e);
           const placex = place_cord.x - this.scroller.clientWidth + 100 + this.content.extent.x.min;
           const placey = place_cord.y - this.scroller.clientHeight + 100 + this.content.extent.y.min;
-    
+          
           selection_move_start = {};
+          selection_move_start.toffs = { x: node.x - placex, y: node.y - placey };
           selection_move_start.pmap = new Map();
 
           this.selected.forEach((v, k) => {
@@ -100,7 +101,7 @@ function SynopsisDiagram(parent_generator) {
           });
 
         }
-      
+        
       }
   
       const idx = Math.floor(Math.random()*example_content.length);
@@ -160,7 +161,7 @@ function SynopsisDiagram(parent_generator) {
       }
     });
 
-    element.addEventListener("click", (e) => {
+    element.addEventListener("mousedown", (e) => {
 
       if (!is_node(e.target) && !ctr_down) {
         this.selected.forEach((v, k) => k.dehighlight());
@@ -186,9 +187,16 @@ function SynopsisDiagram(parent_generator) {
       if (selection_move_start) {
 
         const place_cord = this.get_relative_mouse_pos(e);
-        const placex = place_cord.x - this.scroller.clientWidth + 100 + this.content.extent.x.min;
-        const placey = place_cord.y - this.scroller.clientHeight + 100 + this.content.extent.y.min;
-  
+        let placex = place_cord.x - this.scroller.clientWidth + 100 + this.content.extent.x.min;
+        let placey = place_cord.y - this.scroller.clientHeight + 100 + this.content.extent.y.min;
+        
+        const toffs = selection_move_start.toffs;
+
+        if (ctr_down) {
+          placex = Math.round((placex + toffs.x) / 50) * 50 - toffs.x;
+          placey = Math.round((placey + toffs.y) / 50) * 50 - toffs.y;
+        }
+
         selection_move_start.pmap.forEach((v, k) => {
           k.set_pos(placex + v.ox, placey + v.oy);
         });
