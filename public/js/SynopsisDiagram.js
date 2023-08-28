@@ -13,6 +13,7 @@ function SynopsisDiagram(parent_generator) {
     let prev_extent = { x: { min: 0, max: 0}, y: { min: 0, max: 0 }};
 
     let ctr_down = false;
+    let selection_move_start = false;
 
     const extent_change = () => {
       
@@ -41,6 +42,9 @@ function SynopsisDiagram(parent_generator) {
           this.selected.set(node, true);
         }
 
+      } 
+      else if (this.selected.has(node)) {
+
       } else {
         
         this.selected.forEach((_, k) => k.dehighlight());
@@ -62,10 +66,17 @@ function SynopsisDiagram(parent_generator) {
       console.log("[Diagram] - node load");
 
       return (element) => {
-        
+
         element.onmousedown = (e) => {
           e.preventDefault();
           select_node(node);
+          if (this.selected.has(node)) {
+            selection_move_start = e;
+            selection_move_start.pmap = new Map();
+            this.selected.forEach((v, k) => {
+              selection_move_start.pmap.set(k, { px: k.x, py: k.y });
+            });
+          }
           //node.delete();
         }
 
@@ -109,8 +120,18 @@ function SynopsisDiagram(parent_generator) {
         if (e.key == "Control") ctr_down = false;
       }
 
-      element.addEventListener("mousedown", (e) => {
-        
+      element.addEventListener("wheel", (e) => {
+        if (ctr_down) {
+          e.preventDefault();
+          /* TODO introdce scale
+          if (e.deltaY < 0) this.content.scale_by(1.1);
+          else this.content.scale_by(1 / 1.1);
+          */
+        }
+      });
+
+      element.addEventListener("click", (e) => {
+
         const is_inside_synopsis_node = any_of_parents_satisfies(e.target, (parent) => {
           try {
             return parent.classList.contains("synopsis-node");
@@ -119,7 +140,7 @@ function SynopsisDiagram(parent_generator) {
           }
         });
 
-        if (!is_inside_synopsis_node) {
+        if (!is_inside_synopsis_node && !ctr_down) {
           this.selected.forEach((v, k) => k.dehighlight());
           this.selected.clear();
         }
@@ -130,6 +151,22 @@ function SynopsisDiagram(parent_generator) {
         //console.log("mouse leave");
         window.addEventListener("keydown", key_listen_down);
         window.addEventListener("keyup", key_listen_up);
+      });
+
+      element.addEventListener("mousemove", (e) => {
+        
+        console.log(e);
+
+        if (selection_move_start) {
+          selection_move_start.pmap.forEach((v, k) => {
+            k.set_pos(v.px + e.clientX - selection_move_start.clientX, v.py + e.clientY - selection_move_start.clientY);
+          });
+        }
+
+      });
+
+      element.addEventListener("mouseup", (e) => {
+        if (selection_move_start) selection_move_start = false;
       });
 
       element.addEventListener("mouseleave", (e) => {

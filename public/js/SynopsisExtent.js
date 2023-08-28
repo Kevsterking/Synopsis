@@ -1,11 +1,19 @@
 function SynopsisExtent() {
 
-    const extent = 
+    const extent = { x: { min: 0, max: 0}, y: { min: 0, max: 0 }};
 
-    this.get_extent = null;
+    this.on_change = new SynopsisEvent();
 
-    this.equals = (ex) => {
-        return (extent.x.min == ex.x.min);
+    this.get = () => {
+        return extent;
+    }
+    
+    this.set = (xmin, xmax, ymin, ymax) => {
+        extent.x.min = xmin;
+        extent.x.max = xmax;
+        extent.y.min = ymin;
+        extent.y.max = ymax;
+        this.on_change.trigger();
     }
 
 }

@@ -85,11 +85,14 @@ function SynopsisNode() {
   }
 
   this.highlight = () => {
-    this.element.style.outline = "1px solid red";
+    //this.element.style.outline = "1px solid red";
+    //console.log(this.element, this.element.firstElementChild);
+    this.element.firstElementChild.style.filter = "drop-shadow(1px 1px 0 red) drop-shadow(-1px -1px 0 red)";
   }
 
   this.dehighlight = () => {
-    this.element.style.outline = "none";
+  //  this.element.style.outline = "none";
+    this.element.firstElementChild.style.filter = "none";
   }
 
 

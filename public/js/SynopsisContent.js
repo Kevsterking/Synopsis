@@ -14,6 +14,20 @@ function SynopsisContent(parent_generator) {
   this.on_extent_change = new SynopsisEvent();
   this.on_load          = new SynopsisEvent();
 
+  let scale = 1;
+  let translate_str = "";
+  let scale_str = "";
+
+  this.scale_by = (scl) => {
+    scale *= scl;
+    translate_str = "translate(" + (-this.extent.x.min) + "px, " + (-this.extent.y.min) + "px)";
+    scale_str = "scale(" + scale + ")";
+    this.translator.style.transform = scale_str + " " + translate_str;
+    this.element.style.width = scale * (this.extent.x.max - this.extent.x.min) + "px";
+    this.element.style.height = scale * (this.extent.y.max - this.extent.y.min) + "px";
+    
+  } 
+
   this.on_load.subscribe((element) => {
     console.log("[Content] - content load");
     this.element    = element;
@@ -25,9 +39,10 @@ function SynopsisContent(parent_generator) {
   this.on_extent_change.subscribe(() => {
     console.log("[Content] - content extent change");
     this.extent = this.contain_extent.get_extent();
-    this.translator.style.transform = "translate(" + (-this.extent.x.min) + "px, " + (-this.extent.y.min) + "px)";
-    this.element.style.width = (this.extent.x.max - this.extent.x.min) + "px";
-    this.element.style.height = (this.extent.y.max - this.extent.y.min) + "px";
+    translate_str = "translate(" + (-this.extent.x.min) + "px, " + (-this.extent.y.min) + "px)";
+    this.translator.style.transform = scale_str + " " + translate_str;
+    this.element.style.width = scale * (this.extent.x.max - this.extent.x.min) + "px";
+    this.element.style.height = scale * (this.extent.y.max - this.extent.y.min) + "px";
   });
 
   this.place = (node, x, y) => {
@@ -58,18 +73,14 @@ function SynopsisContent(parent_generator) {
       this.on_extent_change.trigger();
     });
 
-    console.log("");
-    console.log("[Content] - pre node spawn");
     node.spawn(this.translator, x, y);
-    console.log("[Content] - post node spawn");
-    console.log("");
     
   }
 
   placeInDOM(
     `
       <div class="diagram-nodes" style="border: 1px solid white;">
-        <div class="diagram-nodes-translator">
+        <div class="diagram-nodes-translator" style="width: 0;border: 1px solid red">
         </div>
       </div>
     `,
