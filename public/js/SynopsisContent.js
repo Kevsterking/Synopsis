@@ -29,7 +29,7 @@ function SynopsisContent(parent_generator) {
   } 
 
   this.on_load.subscribe((element) => {
-    console.log("[Content] - content load");
+    debug("[Content] - content load");
     this.element    = element;
     this.translator = this.element.querySelector('*.diagram-nodes-translator');
     this.extent     = this.contain_extent.get_extent();
@@ -37,7 +37,7 @@ function SynopsisContent(parent_generator) {
   });
 
   this.on_extent_change.subscribe(() => {
-    console.log("[Content] - content extent change");
+    debug("[Content] - content extent change");
     this.extent = this.contain_extent.get_extent();
     translate_str = "translate(" + (-this.extent.x.min) + "px, " + (-this.extent.y.min) + "px)";
     this.translator.style.transform = scale_str + " " + translate_str;
@@ -48,27 +48,27 @@ function SynopsisContent(parent_generator) {
   this.place = (node, x, y) => {
       
     node.on_load.subscribe(() => {
-      console.log("[Content] - node load");
+      debug("[Content] - node load");
       this.contain_extent.insert_subextent(node);
       this.on_extent_change.trigger();
     });
 
     node.on_resize.subscribe(() => {
-      console.log("[Content] - node resize");
+      debug("[Content] - node resize");
       this.contain_extent.remove_subextent(node);
       this.contain_extent.insert_subextent(node);
       this.on_extent_change.trigger();
     });
 
     node.on_move.subscribe(() => {
-      console.log("[Content] - node move");
+      debug("[Content] - node move");
       this.contain_extent.remove_subextent(node);
       this.contain_extent.insert_subextent(node);
       this.on_extent_change.trigger();
     });
 
     node.on_delete.subscribe(() => {
-      console.log("[Content] - node delete");
+      debug("[Content] - node delete");
       this.contain_extent.remove_subextent(node);
       this.on_extent_change.trigger();
     });

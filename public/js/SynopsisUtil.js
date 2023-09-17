@@ -55,3 +55,11 @@ function any_of_parents_satisfies(element, f) {
   });
   return ret;
 }
+
+const DEBUG_MODE = false;
+
+function debug(str, opts) {
+  if (DEBUG_MODE || opts?.force) {
+    console.log(str);
+  }
+}

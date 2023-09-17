@@ -28,7 +28,7 @@ function SynopsisDiagram(parent_generator) {
   
   const extent_change = () => {
     
-    console.log("[Diagram] - extent change");
+    debug("[Diagram] - extent change");
     
     const new_extent = this.content.extent;
     
@@ -74,7 +74,7 @@ function SynopsisDiagram(parent_generator) {
   
   const node_load = (node) => {
     
-    console.log("[Diagram] - node load");
+    debug("[Diagram] - node load");
   
     return (element) => {
   
@@ -154,10 +154,10 @@ function SynopsisDiagram(parent_generator) {
     element.addEventListener("wheel", (e) => {
       if (ctr_down) {
         e.preventDefault();
-        /* TODO introdce scale
+        
         if (e.deltaY < 0) this.content.scale_by(1.1);
         else this.content.scale_by(1 / 1.1);
-        */
+        
       }
     });
 
@@ -174,12 +174,6 @@ function SynopsisDiagram(parent_generator) {
       //console.log("mouse leave");
       window.addEventListener("keydown", key_listen_down);
       window.addEventListener("keyup", key_listen_up);
-    });
-
-    element.addEventListener("mousedown", (e) => {
-      if (e.button != 0) return;
-      const place_cord = this.get_relative_mouse_pos(e);
-      console.log(place_cord.x - this.scroller.clientWidth + 100 + this.content.extent.x.min, place_cord.y - this.scroller.clientHeight + 100 + this.content.extent.y.min);
     });
 
     element.addEventListener("mousemove", (e) => {

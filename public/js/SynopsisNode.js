@@ -37,7 +37,7 @@ function SynopsisNode() {
 
   this.on_load.subscribe((element) => {
     // Element has loaded
-    console.log("[Node] - node load");
+    debug("[Node] - node load");
     this.element = element;
     resize_observer.observe(this.element);
     this.element.onresize = this.on_resize.trigger; 
@@ -48,7 +48,7 @@ function SynopsisNode() {
 
   this.on_resize.subscribe(() => {
     // Recalculate relative extent, box center positioning
-    console.log("[Node] - node resize");
+    debug("[Node] - node resize");
     if (!this.loaded) return;
     relative_extent.x.min = -this.element.offsetWidth * 0.5;
     relative_extent.y.min = -this.element.offsetHeight * 0.5;
@@ -59,7 +59,7 @@ function SynopsisNode() {
 
   this.on_move.subscribe(() => {
     // Set style according to this.x, this.y positon
-    console.log("[Node] - node move");
+    debug("[Node] - node move");
     if (!this.loaded) return;
     this.element.style.left = (this.x + relative_extent.x.min) + "px"; 
     this.element.style.top = (this.y + relative_extent.y.min) + "px";
