@@ -133,8 +133,9 @@ function SynopsisDiagram(parent_generator) {
   this.on_load = new SynopsisEvent();
 
   this.get_relative_mouse_pos = (e) => {
+    console.log(e);
     const rect = this.scroller.getBoundingClientRect();
-    return { x: e.screenX + this.scroller.scrollLeft - rect.left, y: e.screenY + this.scroller.scrollTop - rect.top - 80};
+    return { x: e.pageX + this.scroller.scrollLeft - rect.left, y: e.pageY + this.scroller.scrollTop - rect.top };
     // I dont know why but somehow we get an offset of 80 from the grid coords
   } 
 
