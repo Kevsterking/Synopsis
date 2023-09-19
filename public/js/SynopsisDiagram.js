@@ -10,21 +10,33 @@ get_json("nodetest.json", (dat) => {testdata = dat;})
 
 function SynopsisDiagram(parent_generator) {
 
-  const resize_observer = new ResizeObserver((entries) => {
-    for (const entry of entries) {
-      entry.target.onresize ? entry.target.onresize(entry) : 0;
-    }
-  });
-
   this.loaded = false;
 
   this.selected = new Map();
-  this.nodes = new Set();
+  this.nodes    = new Set();
+
+  this.translation = { x: 0, y: 0 };
 
   let prev_extent = { x: { min: null, max: null }, y: { min: null, max: null}}
 
   let ctr_down              = false;
   let selection_move_start  = false;
+
+  this.on_load = new SynopsisEvent();
+  this.on_resize = new SynopsisEvent(); 
+  this.on_translate = new SynopsisEvent();
+
+  this.background = new SynopsisGrid(this);   
+
+  this.document = {};
+  this.focused_document = this.document;
+  this.save_location = null;
+
+  const resize_observer = new ResizeObserver((entries) => {
+    for (const entry of entries) {
+      entry.target.onresize ? entry.target.onresize(entry) : 0;
+    }
+  });
 
   const clear_diagram = () => {
     this.nodes.forEach(node => node.delete());
@@ -86,12 +98,12 @@ function SynopsisDiagram(parent_generator) {
     this.selected.clear();
   }
   
-  const node_load = (node, html) => {
+  const node_load = (node, prop) => {
     
     debug("[Diagram] - node load");
   
     return (element) => {
-  
+      
       element.onmousedown = (e) => {
 
         e.preventDefault();
@@ -117,15 +129,19 @@ function SynopsisDiagram(parent_generator) {
         }
         
       }
+
+      element.addEventListener("dblclick", () => {
+        this.load_content(prop);
+      });
   
-      placeInDOM(html, element, null);
+      placeInDOM(prop.html, element, null);
   
     }
   } 
   
-  const place_node = (node, x, y, html) => {
+  const place_node = (node, prop) => {
   
-    node.on_load.subscribe(node_load(node, html));
+    node.on_load.subscribe(node_load(node, prop));
     
     this.nodes.add(node);
     
@@ -133,7 +149,7 @@ function SynopsisDiagram(parent_generator) {
       this.nodes.delete(node);
     });
 
-    this.content.place(node, x, y);
+    this.content.place(node, prop.x, prop.y);
 
   }
 
@@ -141,22 +157,17 @@ function SynopsisDiagram(parent_generator) {
   
     e.preventDefault();
   
-    const place_cord = this.get_relative_mouse_pos(e);
-    const placex = place_cord.x - this.scroller.clientWidth + 100 + this.content.extent.x.min;
-    const placey = place_cord.y - this.scroller.clientHeight + 100 + this.content.extent.y.min;
-  
-    const idx = Math.floor(Math.random()*example_content.length);
-    
+    const prop = {};
     const new_node = new SynopsisNode();
-
-    place_node(new_node, placex, placey, example_content[idx]);
+    const place_cord = this.get_relative_mouse_pos(e);
+  
+    prop.x = place_cord.x - this.scroller.clientWidth + 100 + this.content.extent.x.min;
+    prop.y = place_cord.y - this.scroller.clientHeight + 100 + this.content.extent.y.min;
+    prop.html = "<div style=\"color: white; background-color: gray;padding: 15px\">Node</div>";
+  
+    place_node(new_node, prop);
   
   }
-
-  this.on_load = new SynopsisEvent();
-  this.on_resize = new SynopsisEvent(); 
-  
-  this.background = new SynopsisGrid(this);   
 
   this.on_resize.subscribe(() => {
     this.update();
@@ -164,10 +175,9 @@ function SynopsisDiagram(parent_generator) {
 
   this.get_relative_mouse_pos = (e) => {
     const rect = this.scroller.getBoundingClientRect();
-    return { x: e.pageX + this.scroller.scrollLeft - rect.left, y: e.pageY + this.scroller.scrollTop - rect.top };
-    // I dont know why but somehow we get an offset of 80 from the grid coords
+    return { x: e.x + this.scroller.scrollLeft - rect.left, y: e.y + this.scroller.scrollTop - rect.top};
   } 
-
+  
   this.on_load.subscribe((element) => {
     
     resize_observer.observe(element);
@@ -176,6 +186,11 @@ function SynopsisDiagram(parent_generator) {
     const key_listen_down = (e) => {
       if (e.key == "Delete") delete_selected();
       else if (e.key == "Control") ctr_down = true;
+      else if (e.key == 's') {
+        if (ctr_down) {
+          e.preventDefault();
+        }
+      }
       //  else console.log(e.key);
     }
 
@@ -242,6 +257,22 @@ function SynopsisDiagram(parent_generator) {
       window.removeEventListener("keydown", key_listen_up);
     });
 
+    element.addEventListener("dragenter", e => e.preventDefault());
+    element.addEventListener("dragleave", e => e.preventDefault());
+    element.addEventListener("dragover", e => {
+      e.preventDefault();
+      for (const file of e.dataTransfer.files) {
+        console.log(file);
+      }
+    });
+    
+    element.addEventListener("drop", (e) => {
+      e.preventDefault();
+      console.log(e);
+      console.log(e.dataTransfer.files[0]);
+      
+    });
+
     // load procedure
     this.element            = element;
 
@@ -266,27 +297,20 @@ function SynopsisDiagram(parent_generator) {
     
     this.update();
     this.setTranslation(0, 0);
-
+    
   });
 
   this.load_content = (json) => {
     
     clear_diagram();
     
-    for (const node of json.nodes) {
-      
-      const new_node = new SynopsisNode();
-      
-      if (node.nodes) {
-        new_node.on_load.subscribe((element) => {
-          element.addEventListener("dblclick", () => {
-            this.load_content(node);
-          });
-        });
+    this.document = json;
+    this.focused_document = this.document; 
+
+    if (json.nodes) {
+      for (const node of json.nodes) {
+        place_node(new SynopsisNode(), node.x, node.y, node.html);
       }
-
-      place_node(new_node, node.x, node.y, node.html);
-
     }
 
     this.setTranslation(0, 0);
@@ -295,32 +319,25 @@ function SynopsisDiagram(parent_generator) {
 
   // Update state of diagram
   this.update = () => {
-    
-    if (!this.loaded) return "not_loaded";
 
     const x = (this.scroller.scrollWidth -  this.scroller.offsetWidth)  * 0.5 - this.scroller.scrollLeft;
     const y = (this.scroller.scrollHeight - this.scroller.offsetHeight) * 0.5 - this.scroller.scrollTop;
 
+    this.translation.x = x - this.content.element.offsetWidth * 0.5 - this.content.extent.x.min;
+    this.translation.y = y - this.content.element.offsetHeight * 0.5 - this.content.extent.y.min;
+    
+    this.on_translate.trigger({ x: this.translation.x, y: this.translation.y });
+
     //Keep scrollbar size updated
     this.container.style.padding = (this.scroller.clientHeight - 100) + "px " + (this.scroller.clientWidth - 100) + "px";
-
-    // Update background translation
-    this.background.setTranslation(x - this.content.element.offsetWidth * 0.5 - this.content.extent.x.min, y - this.content.element.offsetHeight * 0.5 - this.content.extent.y.min)
-
-    //Update background
-    this.background.update();
 
   }
 
   // Translate view of diagram
   this.setTranslation = (x, y) => {
-
-    if (!this.loaded) return "not_loaded";
-
     this.scroller.scrollLeft  = (this.scroller.scrollWidth - this.scroller.offsetWidth) * 0.5 - x;
     this.scroller.scrollTop   = (this.scroller.scrollHeight - this.scroller.offsetHeight) * 0.5 - y;
     this.update();
-
   }
   
   placeInDOM(

@@ -19,18 +19,12 @@ function SynopsisGrid(diagram) {
 
   // Set the translation of the grid
   this.setTranslation = (x, y) => {
-
-    if (!this.loaded) return "not_loaded";
-
     this.origin.x = this.context.canvas.width * 0.5 + x;
     this.origin.y = this.context.canvas.height * 0.5 + y;
-  
   }
 
   // Draw the grid to canvas
   this.update = () => {
-
-    if (!this.loaded) return "not_loaded";
 
     // Clear the canvas before drawing new gridlines
     this.context.clearRect(0, 0, this.element.offsetWidth, this.element.offsetHeight);
@@ -81,19 +75,25 @@ function SynopsisGrid(diagram) {
   };
 
   this.on_load.subscribe((element) => {
-    
+
     this.element = element;
 
     this.context = this.element.getContext("2d");
     update_dimensions();
 
-    this.update();
-
     this.loaded = true;
+
+    this.setTranslation(0, 0);
+    this.update();
 
   });
 
   diagram.on_resize.subscribe(update_dimensions);
+
+  diagram.on_translate.subscribe(translation => {
+    this.setTranslation(translation.x, translation.y);
+    this.update();
+  });
 
   diagram.on_load.subscribe((diagram_element) => {
     placeInDOM(
