@@ -63,3 +63,16 @@ function debug(str, opts) {
     console.log(str);
   }
 }
+
+function get_json(url, callback) {
+        
+  const req = new XMLHttpRequest();
+
+  req.addEventListener("load", function() {
+    callback(JSON.parse(this.responseText));
+  });
+
+  req.open("GET", url);
+  req.send();
+
+}

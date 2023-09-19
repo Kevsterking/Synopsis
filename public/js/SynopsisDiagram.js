@@ -4,6 +4,9 @@
 
 // --------------------------------------------------------------------
 
+let testdata = null;
+
+get_json("nodetest.json", (dat) => {testdata = dat;})
 
 function SynopsisDiagram(parent_generator) {
 
@@ -72,7 +75,7 @@ function SynopsisDiagram(parent_generator) {
     this.selected.clear();
   }
   
-  const node_load = (node) => {
+  const node_load = (node, content) => {
     
     debug("[Diagram] - node load");
   
@@ -104,18 +107,19 @@ function SynopsisDiagram(parent_generator) {
         
       }
   
-      const idx = Math.floor(Math.random()*example_content.length);
-      placeInDOM(example_content[idx], element, (cont) => {
-        if (!idx) {
-          setTimeout(() => {
-            cont.style.padding = "100px";
-          }, 5000);
-        }
-      });
+      placeInDOM(content, element, null);
   
     }
   } 
   
+  const place_node = (x, y, content) => {
+  
+    const new_node = new SynopsisNode();
+    new_node.on_load.subscribe(node_load(new_node, content));
+    this.content.place(new_node, x, y);
+
+  }
+
   const place_procedure = (e) => {
   
     e.preventDefault();
@@ -124,16 +128,15 @@ function SynopsisDiagram(parent_generator) {
     const placex = place_cord.x - this.scroller.clientWidth + 100 + this.content.extent.x.min;
     const placey = place_cord.y - this.scroller.clientHeight + 100 + this.content.extent.y.min;
   
-    const new_node = new SynopsisNode();
-    new_node.on_load.subscribe(node_load(new_node));
-    this.content.place(new_node, placex, placey);
+    const idx = Math.floor(Math.random()*example_content.length);
+    
+    place_node(placex, placey, example_content[idx]);
   
   }
 
   this.on_load = new SynopsisEvent();
 
   this.get_relative_mouse_pos = (e) => {
-    console.log(e);
     const rect = this.scroller.getBoundingClientRect();
     return { x: e.pageX + this.scroller.scrollLeft - rect.left, y: e.pageY + this.scroller.scrollTop - rect.top };
     // I dont know why but somehow we get an offset of 80 from the grid coords
@@ -238,6 +241,12 @@ function SynopsisDiagram(parent_generator) {
 
   });
 
+  this.load_content = (json) => {
+    for (const node of json.nodes) {
+      place_node(node.x, node.y, node.content);
+    }
+  }
+
   // Update state of diagram
   this.update = () => {
     
@@ -282,5 +291,6 @@ function SynopsisDiagram(parent_generator) {
     parent_generator, 
     this.on_load.trigger
   );
+
 
 }

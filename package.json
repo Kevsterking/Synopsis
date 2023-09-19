@@ -2,13 +2,13 @@
   "name": "synopsis",
   "version": "1.0.0",
   "description": "Synopsis is designed to make it easier to organize yourself or any collection of collaborators.",
-  "main": "src/index.js",
   "directories": {
     "test": "test"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js"
+    "start": "node webserver.js",
+    "native": "node native.js"
   },
   "repository": {
     "type": "git",
@@ -20,7 +20,8 @@
   "author": "Kevin Bäckstäde",
   "license": "ISC",
   "dependencies": {
-    "avl": "^1.5.3",
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "react": "^18.2.0",
+    "react-native": "^0.72.4"
   }
 }

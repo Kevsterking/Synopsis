@@ -1,0 +1,17 @@
+{
+    "name": "test node",
+    "nodes": [
+        {
+            "x": 100, 
+            "y": 100,
+            "name": "Hello world box",
+            "content": "<div style=\"color: white; background-color: gray;padding: 15px\">Hello World!</div>"
+        },
+        {
+            "x": 400, 
+            "y": 400,
+            "name": "Troll face box",
+            "content": "<img src=\"https://upload.wikimedia.org/wikipedia/en/thumb/9/9a/Trollface_non-free.png/220px-Trollface_non-free.png\" width=\"200\"/>"
+        }
+    ]
+}
