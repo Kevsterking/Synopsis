@@ -3,7 +3,41 @@ function SynopsisWorkspace(parent_generator) {
     this.on_load = new SynopsisEvent();
     
     this.on_load.subscribe((element) => {
+    
         this.diagram = new SynopsisDiagram(element.querySelector("div.workspace-diagram"));
+        this.editor = element.querySelector("div.workspace-editor");
+
+        let resize_editor = false;
+
+        const in_range = (e) => e.x > element.offsetWidth - this.editor.offsetWidth - 10 && e.x < element.offsetWidth - this.editor.offsetWidth + 10;
+
+        element.addEventListener("mousemove", (e) => {
+            
+            if (resize_editor) {
+                this.editor.style.width = (element.offsetWidth - e.x)  + "px";
+            }
+            else if (in_range(e)) {
+                element.style.cursor = "w-resize";
+                console.log("in range!");
+            } else {
+                element.style.cursor = "default";
+            }
+
+        });
+
+        element.addEventListener("mousedown", (e) => {
+            if (in_range(e)) {
+                resize_editor = true;
+                element.style.cursor = "w-resize";
+            }
+        });
+
+        element.addEventListener("mouseup", (e) => {
+            resize_editor = false;
+            element.style.cursor = "default";
+        });
+        
+
     });
 
     placeInDOM(
@@ -30,7 +64,7 @@ function SynopsisWorkspace(parent_generator) {
             
             </div>
 
-            <div style='width: 400px;text-align:center;'>Editor</div>
+            <div class="workspace-editor" style='width: 400px;text-align:center;'>Editor</div>
 
         </div>
     `,
