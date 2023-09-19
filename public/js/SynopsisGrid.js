@@ -4,11 +4,18 @@
 
 // --------------------------------------------------------------------
 
-function SynopsisGrid(parent_generator) {
+function SynopsisGrid(diagram) {
 
   this.loaded = false;
 
   this.origin = { x: 0, y: 0 };
+
+  this.on_load = new SynopsisEvent();
+
+  const update_dimensions = () => {
+    this.context.canvas.width = this.element.offsetWidth;
+    this.context.canvas.height = this.element.offsetHeight;
+  }
 
   // Set the translation of the grid
   this.setTranslation = (x, y) => {
@@ -73,25 +80,30 @@ function SynopsisGrid(parent_generator) {
     
   };
 
-  this.onload = (element) => {
+  this.on_load.subscribe((element) => {
     
     this.element = element;
 
     this.context = this.element.getContext("2d");
-    this.context.canvas.width = this.element.offsetWidth;
-    this.context.canvas.height = this.element.offsetHeight;
+    update_dimensions();
+
+    this.update();
 
     this.loaded = true;
 
-  };
+  });
 
-  placeInDOM(
-    `
-      <canvas class="diagram-canvas" style='z-index: 1; position: absolute; width: 100%; height: 100%;'>
-      </canvas>
-    `,
-    parent_generator,
-    this.onload
-  );
+  diagram.on_resize.subscribe(update_dimensions);
+
+  diagram.on_load.subscribe((diagram_element) => {
+    placeInDOM(
+      `
+        <canvas class="diagram-canvas" style='z-index: 1; position: absolute; width: 100%; height: 100%;'>
+        </canvas>
+      `,
+      diagram_element.querySelector('*.diagram-static-background'),
+      this.on_load.trigger
+    );
+  });
 
 }

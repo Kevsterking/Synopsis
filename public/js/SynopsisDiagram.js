@@ -10,14 +10,25 @@ get_json("nodetest.json", (dat) => {testdata = dat;})
 
 function SynopsisDiagram(parent_generator) {
 
+  const resize_observer = new ResizeObserver((entries) => {
+    for (const entry of entries) {
+      entry.target.onresize ? entry.target.onresize(entry) : 0;
+    }
+  });
+
   this.loaded = false;
 
   this.selected = new Map();
+  this.nodes = new Set();
 
   let prev_extent = { x: { min: null, max: null }, y: { min: null, max: null}}
 
   let ctr_down              = false;
   let selection_move_start  = false;
+
+  const clear_diagram = () => {
+    this.nodes.forEach(node => node.delete());
+  }
 
   const is_node = (target) => {
     return any_of_parents_satisfies(target, (parent) => {
@@ -75,7 +86,7 @@ function SynopsisDiagram(parent_generator) {
     this.selected.clear();
   }
   
-  const node_load = (node, content) => {
+  const node_load = (node, html) => {
     
     debug("[Diagram] - node load");
   
@@ -107,16 +118,22 @@ function SynopsisDiagram(parent_generator) {
         
       }
   
-      placeInDOM(content, element, null);
+      placeInDOM(html, element, null);
   
     }
   } 
   
-  const place_node = (x, y, content) => {
+  const place_node = (node, x, y, html) => {
   
-    const new_node = new SynopsisNode();
-    new_node.on_load.subscribe(node_load(new_node, content));
-    this.content.place(new_node, x, y);
+    node.on_load.subscribe(node_load(node, html));
+    
+    this.nodes.add(node);
+    
+    node.on_delete.subscribe(() => {
+      this.nodes.delete(node);
+    });
+
+    this.content.place(node, x, y);
 
   }
 
@@ -130,11 +147,20 @@ function SynopsisDiagram(parent_generator) {
   
     const idx = Math.floor(Math.random()*example_content.length);
     
-    place_node(placex, placey, example_content[idx]);
+    const new_node = new SynopsisNode();
+
+    place_node(new_node, placex, placey, example_content[idx]);
   
   }
 
   this.on_load = new SynopsisEvent();
+  this.on_resize = new SynopsisEvent(); 
+  
+  this.background = new SynopsisGrid(this);   
+
+  this.on_resize.subscribe(() => {
+    this.update();
+  });
 
   this.get_relative_mouse_pos = (e) => {
     const rect = this.scroller.getBoundingClientRect();
@@ -144,8 +170,10 @@ function SynopsisDiagram(parent_generator) {
 
   this.on_load.subscribe((element) => {
     
-    const key_listen_down = (e) => {
+    resize_observer.observe(element);
+    element.onresize = this.on_resize.trigger;
 
+    const key_listen_down = (e) => {
       if (e.key == "Delete") delete_selected();
       else if (e.key == "Control") ctr_down = true;
       //  else console.log(e.key);
@@ -216,12 +244,12 @@ function SynopsisDiagram(parent_generator) {
 
     // load procedure
     this.element            = element;
+
     this.scroller           = this.element.querySelector('*.diagram-dynamic-foreground'); 
     this.container          = this.element.querySelector('*.diagram-content-container');
     this.static_background  = this.element.querySelector('*.diagram-static-background');
 
     this.content    = new SynopsisContent(this.container);
-    this.background = new SynopsisGrid(this.static_background);   
     
     this.content.on_extent_change.subscribe(extent_change);
 
@@ -242,9 +270,27 @@ function SynopsisDiagram(parent_generator) {
   });
 
   this.load_content = (json) => {
+    
+    clear_diagram();
+    
     for (const node of json.nodes) {
-      place_node(node.x, node.y, node.content);
+      
+      const new_node = new SynopsisNode();
+      
+      if (node.nodes) {
+        new_node.on_load.subscribe((element) => {
+          element.addEventListener("dblclick", () => {
+            this.load_content(node);
+          });
+        });
+      }
+
+      place_node(new_node, node.x, node.y, node.html);
+
     }
+
+    this.setTranslation(0, 0);
+
   }
 
   // Update state of diagram
@@ -279,7 +325,7 @@ function SynopsisDiagram(parent_generator) {
   
   placeInDOM(
     `
-      <div class="diagram-root" style='z-index: 0; position: relative; display: inline-block; overflow: hidden; width: 1500px; height: 900px; background-color: rgb(51, 51, 51);'>
+      <div class="diagram-root" style='z-index: 0; position: relative; display: inline-block; overflow: hidden; width: 100vw; height: 100vh; background-color: rgb(51, 51, 51);'>
         <div class="diagram-static-background" style='z-index: 1; position: absolute; top: 0; left: 0; right: 0; bottom: 0;'>
         </div>
         <div class="diagram-dynamic-foreground" style='z-index: 100; overflow: scroll; position: absolute; top: 0; left: 0; right: 0; bottom: 0;'>
