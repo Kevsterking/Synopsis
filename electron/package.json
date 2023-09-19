@@ -1,0 +1,22 @@
+{
+  "name": "synopsis",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test:e2e": "./node_modules/mocha/bin/mocha tests/test.js",
+    "main2": "npm run start ./main2.js",
+    "debug": "./node_modules/.bin/electron ./main2.js"
+  },
+  "author": "Kevin Bäckstäde",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^4.0.8",
+    "mocha": "^3.5.3",
+    "spectron": "^5.0.0"
+  },
+  "dependencies": {
+    "start": "^5.1.0"
+  }
+}
