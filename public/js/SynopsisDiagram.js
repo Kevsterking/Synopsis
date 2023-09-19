@@ -342,7 +342,7 @@ function SynopsisDiagram(parent_generator) {
   
   placeInDOM(
     `
-      <div class="diagram-root" style='z-index: 0; position: relative; display: inline-block; overflow: hidden; width: 100vw; height: 100vh; background-color: rgb(51, 51, 51);'>
+      <div class="diagram-root" style='z-index: 0; position: relative; display: inline-block; overflow: hidden; width: 100%; height: 100%; background-color: rgb(41, 41, 41);'>
         <div class="diagram-static-background" style='z-index: 1; position: absolute; top: 0; left: 0; right: 0; bottom: 0;'>
         </div>
         <div class="diagram-dynamic-foreground" style='z-index: 100; overflow: scroll; position: absolute; top: 0; left: 0; right: 0; bottom: 0;'>
