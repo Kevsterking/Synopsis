@@ -16,7 +16,7 @@ function SynopsisNode() {
 
   const domstr = (
     `
-      <div class='synopsis-node' style='user-select: none;white-space: nowrap; position: absolute; box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px; cursor: pointer;'>
+      <div class='synopsis-node' style='user-select: none;white-space: nowrap; position: absolute;cursor: pointer;'>
       </div>
     `
   );
@@ -49,7 +49,6 @@ function SynopsisNode() {
   this.on_resize.subscribe(() => {
     // Recalculate relative extent, box center positioning
     debug("[Node] - node resize");
-    if (!this.loaded) return;
     relative_extent.x.min = -this.element.offsetWidth * 0.5;
     relative_extent.y.min = -this.element.offsetHeight * 0.5;
     relative_extent.x.max = -relative_extent.x.min;
@@ -60,7 +59,6 @@ function SynopsisNode() {
   this.on_move.subscribe(() => {
     // Set style according to this.x, this.y positon
     debug("[Node] - node move");
-    if (!this.loaded) return;
     this.element.style.left = (this.x + relative_extent.x.min) + "px"; 
     this.element.style.top = (this.y + relative_extent.y.min) + "px";
   });

@@ -19,10 +19,11 @@ function SynopsisContent(parent_generator) {
   let scale_str = "";
 
   this.scale_by = (scl) => {
-    scale *= scl;
-    translate_str = "translate(" + (-this.extent.x.min) + "px, " + (-this.extent.y.min) + "px)";
+    //scale *= scl;
+    scale = 1;
+    translate_str = "translate(" + (-1-this.extent.x.min) + "px, " + (-1-this.extent.y.min) + "px)";
     scale_str = "scale(" + scale + ")";
-    this.translator.style.transform = scale_str + " " + translate_str;
+    this.translator.style.transform = translate_str;//scale_str + " " + translate_str;
     this.element.style.width = scale * (this.extent.x.max - this.extent.x.min) + "px";
     this.element.style.height = scale * (this.extent.y.max - this.extent.y.min) + "px";
     
@@ -39,8 +40,8 @@ function SynopsisContent(parent_generator) {
   this.on_extent_change.subscribe(() => {
     debug("[Content] - content extent change");
     this.extent = this.contain_extent.get_extent();
-    translate_str = "translate(" + (-this.extent.x.min) + "px, " + (-this.extent.y.min) + "px)";
-    this.translator.style.transform = scale_str + " " + translate_str;
+    translate_str = "translate(" + (-1-this.extent.x.min) + "px, " + (-1-this.extent.y.min) + "px)";
+    this.translator.style.transform = translate_str; //scale_str + " " + translate_str;
     this.element.style.width = scale * (this.extent.x.max - this.extent.x.min) + "px";
     this.element.style.height = scale * (this.extent.y.max - this.extent.y.min) + "px";
   });
@@ -79,7 +80,7 @@ function SynopsisContent(parent_generator) {
 
   placeInDOM(
     `
-      <div class="diagram-nodes" style="border: 1px solid white;">
+      <div class="diagram-nodes" style="box-sizing: content-box;border: 1px solid white;">
         <div class="diagram-nodes-translator" style="width: 0;border: 1px solid red">
         </div>
       </div>
