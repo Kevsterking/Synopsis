@@ -5,20 +5,22 @@ function SynopsisWorkspace(parent_generator) {
     this.on_load.subscribe((element) => {
     
         this.diagram = new SynopsisDiagram(element.querySelector("div.workspace-diagram"));
-        this.editor = element.querySelector("div.workspace-editor");
+        this.editor_dom = element.querySelector("div.workspace-editor");
+        this.editor = new SynopsisMonacoEditor(this.editor_dom);
 
         let resize_editor = false;
 
-        const in_range = (e) => e.x > element.offsetWidth - this.editor.offsetWidth - 10 && e.x < element.offsetWidth - this.editor.offsetWidth + 10;
+        const in_range = (e) => e.x > element.offsetWidth - this.editor_dom.offsetWidth - 10 && e.x < element.offsetWidth - this.editor_dom.offsetWidth + 10;
 
         element.addEventListener("mousemove", (e) => {
             
+            e.preventDefault();
+
             if (resize_editor) {
-                this.editor.style.width = (element.offsetWidth - e.x)  + "px";
+                this.editor_dom.style.width = (element.offsetWidth - e.x)  + "px";
             }
             else if (in_range(e)) {
                 element.style.cursor = "w-resize";
-                console.log("in range!");
             } else {
                 element.style.cursor = "default";
             }
@@ -26,6 +28,7 @@ function SynopsisWorkspace(parent_generator) {
         });
 
         element.addEventListener("mousedown", (e) => {
+            e.preventDefault();
             if (in_range(e)) {
                 resize_editor = true;
                 element.style.cursor = "w-resize";
@@ -33,6 +36,7 @@ function SynopsisWorkspace(parent_generator) {
         });
 
         element.addEventListener("mouseup", (e) => {
+            e.preventDefault();
             resize_editor = false;
             element.style.cursor = "default";
         });
@@ -64,7 +68,7 @@ function SynopsisWorkspace(parent_generator) {
             
             </div>
 
-            <div class="workspace-editor" style='width: 400px;text-align:center;'>Editor</div>
+            <div class="workspace-editor" style='width: 400px;'></div>
 
         </div>
     `,
