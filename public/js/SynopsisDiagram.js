@@ -12,9 +12,16 @@ function SynopsisDiagram(workspace) {
 
   this.loaded = false;
 
+  this.on_load            = new SynopsisEvent();
+  this.on_resize          = new SynopsisEvent(); 
+  this.on_translate       = new SynopsisEvent();
+  this.on_focus_document  = new SynopsisEvent();
+
   this.workspace = workspace;
 
-  this.selected = new Map();
+  this.background = new SynopsisGrid(this);   
+
+  this.selected = new Set();
   this.nodes    = new Set();
 
   this.translation = { x: 0, y: 0 };
@@ -24,15 +31,8 @@ function SynopsisDiagram(workspace) {
   let ctr_down              = false;
   let selection_move_start  = false;
 
-  this.on_load = new SynopsisEvent();
-  this.on_resize = new SynopsisEvent(); 
-  this.on_translate = new SynopsisEvent();
-
-  this.background = new SynopsisGrid(this);   
-
   this.document = {};
   this.focused_document = this.document;
-  this.save_location = null;
 
   const resize_observer = new ResizeObserver((entries) => {
     for (const entry of entries) {
@@ -78,7 +78,7 @@ function SynopsisDiagram(workspace) {
         this.selected.delete(node);
       } else {
         node.highlight();
-        this.selected.set(node, true);
+        this.selected.add(node);
       }
   
     } 
@@ -86,34 +86,32 @@ function SynopsisDiagram(workspace) {
   
     } else {
       
-      this.selected.forEach((_, k) => k.dehighlight());
+      this.selected.forEach(k => k.dehighlight());
       this.selected.clear();
       node.highlight();
-      this.selected.set(node, true);
+      this.selected.add(node);
     
     }
   
   }
   
   const delete_selected = () => {
-    this.selected.forEach((v, k) => k.delete());
+    this.selected.forEach(k => k.delete());
     this.selected.clear();
   }
   
   const node_load = (node, prop) => {
     
     debug("[Diagram] - node load");
-  
-    return (element) => {
+    
+    return element => {
       
-      element.onmousedown = (e) => {
+      element.addEventListener("mousedown", (e) => {
 
         e.preventDefault();
         
         if (e.button != 0) return;
         
-        select_node(node);
-
         if (this.selected.has(node)) {
           
           const place_cord = this.get_relative_mouse_pos(e);
@@ -124,18 +122,20 @@ function SynopsisDiagram(workspace) {
           selection_move_start.toffs = { x: node.x - placex, y: node.y - placey };
           selection_move_start.pmap = new Map();
 
-          this.selected.forEach((v, k) => {
+          this.selected.forEach(k => {
             selection_move_start.pmap.set(k, { ox: k.x - placex, oy: k.y - placey });
           });
 
         }
+
+        select_node(node);
         
-      }
+      });
 
       element.addEventListener("dblclick", () => {
         this.load_content(prop);
       });
-  
+
       placeInDOM(prop.html, element, null);
   
     }
@@ -213,7 +213,7 @@ function SynopsisDiagram(workspace) {
     element.addEventListener("mousedown", (e) => {
 
       if (!is_node(e.target) && !ctr_down) {
-        this.selected.forEach((v, k) => k.dehighlight());
+        this.selected.forEach(k => k.dehighlight());
         this.selected.clear();
       }
 
@@ -311,9 +311,11 @@ function SynopsisDiagram(workspace) {
 
     if (json.nodes) {
       for (const node of json.nodes) {
-        place_node(new SynopsisNode(), node.x, node.y, node.html);
+        place_node(new SynopsisNode(), node);
       }
     }
+
+    this.on_focus_document.trigger(json);
 
     this.setTranslation(0, 0);
 

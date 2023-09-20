@@ -5,6 +5,10 @@ function SynopsisWorkspace(parent_generator) {
 
     this.on_load = new SynopsisEvent();
     
+    this.diagram.on_focus_document.subscribe(json => {
+        this.editor.set_content(JSON.stringify(json, null, 2), null);
+    });
+
     this.on_load.subscribe((element) => {
         
         const diagram_dom = element.querySelector("div.workspace-diagram");
