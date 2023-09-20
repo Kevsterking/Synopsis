@@ -108,12 +108,29 @@ function SynopsisDiagram(workspace) {
     
     return element => {
       
+      let last_mousedown_time = Date.now();
+      let cancel_dbkclick = false;
+
+      element.addEventListener("mousemove", () => {
+        cancel_dbkclick = true;
+      });
+
+      element.addEventListener("click", (e) => {
+
+        if (e.button != 0) return;
+        
+      });
+
       element.addEventListener("mousedown", (e) => {
 
         e.preventDefault();
         
         if (e.button != 0) return;
         
+        if (Date.now() - last_mousedown_time < 500 && !cancel_dbkclick) {
+          this.load_content(prop);
+        }
+
         if (this.selected.has(node)) {
           
           const place_cord = this.get_relative_mouse_pos(e);
@@ -131,11 +148,10 @@ function SynopsisDiagram(workspace) {
         }
 
         select_node(node);
-        
-      });
 
-      element.addEventListener("dblclick", () => {
-        this.load_content(prop);
+        last_mousedown_time = Date.now();
+        cancel_dbkclick = false;
+
       });
 
       placeInDOM(prop.html, element, null);
