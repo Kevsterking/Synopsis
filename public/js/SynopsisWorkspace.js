@@ -1,23 +1,28 @@
 function SynopsisWorkspace(parent_generator) {
 
+    this.editor = new SynopsisMonacoEditor(this);;
+    this.diagram = new SynopsisDiagram(this);
+
     this.on_load = new SynopsisEvent();
     
     this.on_load.subscribe((element) => {
-    
-        this.diagram = new SynopsisDiagram(element.querySelector("div.workspace-diagram"));
-        this.editor_dom = element.querySelector("div.workspace-editor");
-        this.editor = new SynopsisMonacoEditor(this.editor_dom);
+        
+        const diagram_dom = element.querySelector("div.workspace-diagram");
+        const editor_dom = element.querySelector("div.workspace-editor");
+
+        this.editor.spawn(editor_dom);
+        this.diagram.spawn(diagram_dom);
 
         let resize_editor = false;
 
-        const in_range = (e) => e.x > element.offsetWidth - this.editor_dom.offsetWidth - 10 && e.x < element.offsetWidth - this.editor_dom.offsetWidth + 10;
+        const in_range = (e) => e.x > element.offsetWidth - editor_dom.offsetWidth - 10 && e.x < element.offsetWidth - editor_dom.offsetWidth + 10;
 
         element.addEventListener("mousemove", (e) => {
             
             e.preventDefault();
 
             if (resize_editor) {
-                this.editor_dom.style.width = (element.offsetWidth - e.x)  + "px";
+                editor_dom.style.width = (element.offsetWidth - e.x)  + "px";
             }
             else if (in_range(e)) {
                 element.style.cursor = "w-resize";
