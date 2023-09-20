@@ -28,8 +28,8 @@ function SynopsisWorkspace(parent_generator) {
         });
 
         element.addEventListener("mousedown", (e) => {
-            e.preventDefault();
             if (in_range(e)) {
+                e.preventDefault();
                 resize_editor = true;
                 element.style.cursor = "w-resize";
             }
