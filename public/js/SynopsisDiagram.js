@@ -26,13 +26,15 @@ function SynopsisDiagram(workspace) {
 
   this.translation = { x: 0, y: 0 };
 
+  this.document = {};
+  this.focused_document = this.document;
+
   let prev_extent = { x: { min: null, max: null }, y: { min: null, max: null}}
 
   let ctr_down              = false;
   let selection_move_start  = false;
 
-  this.document = {};
-  this.focused_document = this.document;
+  let last_move_event = null;
 
   const resize_observer = new ResizeObserver((entries) => {
     for (const entry of entries) {
@@ -141,6 +143,29 @@ function SynopsisDiagram(workspace) {
     }
   } 
   
+  const drag_update = (e) => {
+
+    if (selection_move_start) {
+
+      const place_cord = this.get_relative_mouse_pos(e);
+      let placex = place_cord.x - this.scroller.clientWidth + 100 + this.content.extent.x.min;
+      let placey = place_cord.y - this.scroller.clientHeight + 100 + this.content.extent.y.min;
+      
+      const toffs = selection_move_start.toffs;
+
+      if (ctr_down) {
+        placex = Math.round((placex + toffs.x) / 50) * 50 - toffs.x;
+        placey = Math.round((placey + toffs.y) / 50) * 50 - toffs.y;
+      }
+
+      selection_move_start.pmap.forEach((v, k) => {
+        k.set_pos(placex + v.ox, placey + v.oy);
+      });
+
+    }
+  
+  }
+
   const place_node = (node, prop) => {
   
     node.on_load.subscribe(node_load(node, prop));
@@ -171,14 +196,14 @@ function SynopsisDiagram(workspace) {
   
   }
 
-  this.on_resize.subscribe(() => {
-    this.update();
-  });
-
   this.get_relative_mouse_pos = (e) => {
     const rect = this.scroller.getBoundingClientRect();
     return { x: e.x + this.scroller.scrollLeft - rect.left, y: e.y + this.scroller.scrollTop - rect.top};
   } 
+
+  this.on_resize.subscribe(() => {
+    this.update();
+  });
   
   this.on_load.subscribe((element) => {
     
@@ -201,13 +226,13 @@ function SynopsisDiagram(workspace) {
     }
 
     element.addEventListener("wheel", (e) => {
+
       if (ctr_down) {
         e.preventDefault();
-        
         if (e.deltaY < 0) this.content.scale_by(1.1);
         else this.content.scale_by(1 / 1.1);
-        
       }
+      
     });
 
     element.addEventListener("mousedown", (e) => {
@@ -226,26 +251,8 @@ function SynopsisDiagram(workspace) {
     });
 
     element.addEventListener("mousemove", (e) => {
-
-      if (selection_move_start) {
-
-        const place_cord = this.get_relative_mouse_pos(e);
-        let placex = place_cord.x - this.scroller.clientWidth + 100 + this.content.extent.x.min;
-        let placey = place_cord.y - this.scroller.clientHeight + 100 + this.content.extent.y.min;
-        
-        const toffs = selection_move_start.toffs;
-
-        if (ctr_down) {
-          placex = Math.round((placex + toffs.x) / 50) * 50 - toffs.x;
-          placey = Math.round((placey + toffs.y) / 50) * 50 - toffs.y;
-        }
-
-        selection_move_start.pmap.forEach((v, k) => {
-          k.set_pos(placex + v.ox, placey + v.oy);
-        });
-
-      }
-
+      last_move_event = e;
+      drag_update(e);
     });
 
     element.addEventListener("mouseup", (e) => {
@@ -293,7 +300,12 @@ function SynopsisDiagram(workspace) {
       }
     }
     
-    this.scroller.onscroll        = this.update; 
+    this.scroller.onscroll = (e) => {
+
+      this.update(e); 
+      drag_update(last_move_event);
+
+    }
 
     this.loaded = true;
     
