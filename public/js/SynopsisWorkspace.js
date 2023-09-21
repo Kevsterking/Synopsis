@@ -1,15 +1,10 @@
 function SynopsisWorkspace(parent_generator) {
 
     this.editor = new SynopsisMonacoEditor(this);;
-    this.diagram = new SynopsisDiagram(this);
 
     this.on_load = new SynopsisEvent();
     
     this.tabs = new Set();
-
-    this.diagram.on_focus_document.subscribe(json => {
-        this.editor.set_content(JSON.stringify(json, null, 2), null);
-    });
 
     this.on_load.subscribe((element) => {
         
@@ -19,7 +14,6 @@ function SynopsisWorkspace(parent_generator) {
         const add_tab_dom = element.querySelector("div.workspace-add-tab");
 
         this.editor.spawn(editor_dom);
-        this.diagram.spawn(diagram_dom);
 
         let resize_editor = false;
 
@@ -56,8 +50,12 @@ function SynopsisWorkspace(parent_generator) {
         
         this.add_tab = name => {
             
-            let new_tab = new SynopsisTab(name);
-            
+            let new_tab = new SynopsisTab(name, diagram_dom);
+
+            new_tab.diagram.on_focus_document.subscribe(json => {
+                this.editor.set_content(JSON.stringify(json, null, 2), null);
+            });
+
             this.tabs.add(new_tab);
             
             new_tab.on_click.subscribe(() => {
@@ -66,7 +64,6 @@ function SynopsisWorkspace(parent_generator) {
             });
 
             new_tab.on_close.subscribe(() => {
-                console.log("tab", name, "is closing");
                 this.tabs.delete(new_tab);
                 new_tab.delete();
             });

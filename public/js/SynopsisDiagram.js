@@ -316,21 +316,14 @@ function SynopsisDiagram(workspace) {
         place_procedure(e);
       }
     }
-    
+        
     this.scroller.onscroll = (e) => {
-      
-      if (!disable_scroll_once) {
-        this.update_translation(e); 
-      }
-      
-      disable_scroll_once = false;
-
+      this.update_translation(e); 
       drag_update(last_move_event);
-    
-    }
+    };
 
     this.loaded = true;
-    
+
     this.update();
     this.set_translation(0, 0);
     
@@ -376,8 +369,6 @@ function SynopsisDiagram(workspace) {
     this.scroller.scrollLeft = paddingx - this.content.extent.x.min - cx - this.translation.x;
     this.scroller.scrollTop = paddingy - this.content.extent.y.min - cy - this.translation.y; 
 
-    disable_scroll_once = true;
-
     this.on_translate.trigger({ x: this.translation.x, y: this.translation.y });
 
   }
@@ -407,7 +398,7 @@ function SynopsisDiagram(workspace) {
 
     placeInDOM(
       `
-        <div class="diagram-root" style='z-index: 0; position: relative; display: inline-block; overflow: hidden; width: 100%; height: 100%; background-color: #242424;'>
+        <div class="diagram-root" style='z-index: 0; position: relative; display: block; overflow: hidden; width: 100%; height: 100%; background-color: #242424;'>
           <div class="diagram-static-background" style='z-index: 1; position: absolute; top: 0; left: 0; right: 0; bottom: 0;'>
           </div>
           <div class="diagram-dynamic-foreground" style='z-index: 100; overflow: scroll; position: absolute; top: 0; left: 0; right: 0; bottom: 0;'>

@@ -34,7 +34,7 @@ function SynopsisGrid(diagram) {
 
     // Draw full gridlines
     this.context.beginPath();
-    this.context.strokeStyle = "rgb(55, 55, 55)";
+    this.context.strokeStyle = "rgb(40, 40, 40)";
     for (let x = this.origin.x % 100 - 50; x < this.element.offsetWidth; x += 100) {
       this.context.moveTo(x, 0);
       this.context.lineTo(x, this.element.offsetHeight);
@@ -48,7 +48,7 @@ function SynopsisGrid(diagram) {
 
     // Draw half gridlines 
     this.context.beginPath();
-    this.context.strokeStyle = "rgb(60, 60, 60)";
+    this.context.strokeStyle = "rgb(50, 50, 50)";
     for (let x = this.origin.x % 100; x < this.element.offsetWidth; x += 100) {
       this.context.moveTo(x, 0);
       this.context.lineTo(x, this.element.offsetHeight);
@@ -61,6 +61,7 @@ function SynopsisGrid(diagram) {
     this.context.stroke();    
 
     /* Draw origin lines */
+    /*
     this.context.beginPath();
     this.context.strokeStyle = "rgb(80, 80, 80)";
     this.context.moveTo(this.origin.x, 0);
@@ -69,7 +70,7 @@ function SynopsisGrid(diagram) {
     this.context.lineTo(this.element.offsetWidth, this.origin.y);
     this.context.closePath();
     this.context.stroke();
-    
+    */
     this.context.translate(-0.5, -0.5);
     
   };

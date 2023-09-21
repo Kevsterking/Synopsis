@@ -83,13 +83,13 @@ function SynopsisNode() {
   }
 
   this.highlight = () => {
-    //this.element.style.outline = "1px solid red";
+    //this.element.style.border = "1px solid rgba(255, 0, 0, 1)";
     //console.log(this.element, this.element.firstElementChild);
     this.element.firstElementChild.style.filter = "drop-shadow(1px 1px 0 red) drop-shadow(-1px -1px 0 red)";
   }
 
   this.dehighlight = () => {
-  //  this.element.style.outline = "none";
+    //this.element.style.border = "none";
     this.element.firstElementChild.style.filter = "none";
   }
 
