@@ -5,6 +5,8 @@ function SynopsisWorkspace(parent_generator) {
 
     this.on_load = new SynopsisEvent();
     
+    this.tabs = new Set();
+
     this.diagram.on_focus_document.subscribe(json => {
         this.editor.set_content(JSON.stringify(json, null, 2), null);
     });
@@ -13,6 +15,8 @@ function SynopsisWorkspace(parent_generator) {
         
         const diagram_dom = element.querySelector("div.workspace-diagram");
         const editor_dom = element.querySelector("div.workspace-editor");
+        const tab_dom = element.querySelector("div.workspace-tabs-container");
+        const add_tab_dom = element.querySelector("div.workspace-add-tab");
 
         this.editor.spawn(editor_dom);
         this.diagram.spawn(diagram_dom);
@@ -50,6 +54,48 @@ function SynopsisWorkspace(parent_generator) {
             element.style.cursor = "default";
         });
         
+        this.add_tab = name => {
+            
+            let new_tab = new SynopsisTab(name);
+            
+            this.tabs.add(new_tab);
+            
+            new_tab.on_click.subscribe(() => {
+                this.tabs.forEach(tab => tab.dehighlight());
+                new_tab.highlight();
+            });
+
+            new_tab.on_close.subscribe(() => {
+                console.log("tab", name, "is closing");
+                this.tabs.delete(new_tab);
+                new_tab.delete();
+            });
+
+            new_tab.spawn(tab_dom);
+            
+            return new_tab;
+
+        }
+
+        add_tab_dom.addEventListener("mouseenter", () => {
+            add_tab_dom.style.filter = "brightness(120%)";;
+        });
+
+        add_tab_dom.addEventListener("mouseleave", () => {
+            add_tab_dom.style.filter = "brightness(100%)";;
+        });
+        
+        add_tab_dom.addEventListener("click", () => {
+            this.add_tab("New diagram");
+        });
+
+        this.select_tab = tab => {
+            tab.highlight();
+        }
+
+        const prim_tab = this.add_tab("New Diagram");
+
+        this.select_tab(prim_tab);
 
     });
 
@@ -61,13 +107,23 @@ function SynopsisWorkspace(parent_generator) {
 
             <div style='display: flex;flex-direction: column;flex-grow:1;'>
                 
-                <div style='cursor: pointer;display: flex;gap:1px;background-color: rgb(47, 47, 47);'>
-                    <div style='background-color: rgb(41, 41, 41);padding: 8px 20px;'>tab example name</div>
-                    <div style='background-color: rgb(51, 51, 51);padding: 8px 20px;'>tab 2 name</div>
-                    <div style='background-color: rgb(51, 51, 51);padding: 8px 20px;'>tab 3 name</div>
+                <div class="workspace-tabs" style='font-family:arial;cursor: pointer;display: flex;gap:1px;background-color: rgb(47, 47, 47);'>
+                    <div style="display: flex;gap:1px;" class="workspace-tabs-container">
+                    </div>
+                    <div class="workspace-add-tab" style="color:rgba(255, 255, 255, 0.4);font-size:16px;padding: 8px 10px;background-color:#1e1e1e;">
+                        <p>+</p>
+                    </div>
+                    
                 </div>
-                
-                <div style='display: flex;background-color: rgb(41, 41, 41);font-size:12px;'>
+
+                <style>
+                    div.workspace-add-tab:hover {
+                        color: rgba(255, 255, 255, 0.7);
+                        background-color: white;
+                    }
+                </style>
+
+                <div style='display: flex;background-color: rgb(41, 41, 41);font-size:12px;padding: 0 10px;'>
                     <div style='padding: 3px 10px;'>A</div>
                     <div style='padding: 3px 10px;'>B</div>
                     <div style='padding: 3px 10px;'>C</div>

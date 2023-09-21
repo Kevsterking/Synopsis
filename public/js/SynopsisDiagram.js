@@ -115,20 +115,19 @@ function SynopsisDiagram(workspace) {
         cancel_dbkclick = true;
       });
 
-      element.addEventListener("click", (e) => {
-
-        if (e.button != 0) return;
-        
-      });
-
       element.addEventListener("mousedown", (e) => {
 
         e.preventDefault();
-        
-        if (e.button != 0) return;
-        
+
+        select_node(node);
+
+        if (e.button != 0) {
+          return;
+        }
+
         if (Date.now() - last_mousedown_time < 500 && !cancel_dbkclick) {
           this.load_content(prop);
+          return;
         }
 
         if (this.selected.has(node)) {
@@ -146,8 +145,6 @@ function SynopsisDiagram(workspace) {
           });
 
         }
-
-        select_node(node);
 
         last_mousedown_time = Date.now();
         cancel_dbkclick = false;
