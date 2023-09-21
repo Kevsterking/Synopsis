@@ -17,8 +17,6 @@ function SynopsisDiagram(workspace) {
   this.on_translate       = new SynopsisEvent();
   this.on_focus_document  = new SynopsisEvent();
 
-  this.workspace = workspace;
-
   this.background = new SynopsisGrid(this);   
 
   this.selected = new Set();
@@ -29,18 +27,27 @@ function SynopsisDiagram(workspace) {
   this.document = {};
   this.focused_document = this.document;
 
-  let prev_extent = { x: { min: null, max: null }, y: { min: null, max: null}}
+  // ---------------------------------------------------------------------------
 
   let ctr_down              = false;
   let selection_move_start  = false;
 
   let last_move_event = null;
 
+  let disable_scroll_once = false;
+
+  // ---------------------------------------------------------------------------
+
   const resize_observer = new ResizeObserver((entries) => {
     for (const entry of entries) {
       entry.target.onresize ? entry.target.onresize(entry) : 0;
     }
   });
+
+  const get_diagram_cord = e => {
+    const rel_cord = this.get_relative_mouse_pos(e);
+    return { x: this.content.extent.x.min - (this.scroller.clientWidth - 100) + rel_cord.x, y: this.content.extent.y.min - (this.scroller.clientHeight - 100) + rel_cord.y };
+  }
 
   const clear_diagram = () => {
     this.nodes.forEach(node => node.delete());
@@ -59,15 +66,9 @@ function SynopsisDiagram(workspace) {
   const extent_change = () => {
     
     debug("[Diagram] - extent change");
-    
-    const new_extent = this.content.extent;
-    
-    this.scroller.scrollLeft -= (new_extent.x.min - prev_extent.x.min);
-    this.scroller.scrollTop -= (new_extent.y.min - prev_extent.y.min);
-    
-    prev_extent = new_extent;
   
-    this.update();
+    this.update_size();
+    this.update_scroll_pos();
     
   }
   
@@ -160,9 +161,9 @@ function SynopsisDiagram(workspace) {
 
     if (selection_move_start) {
 
-      const place_cord = this.get_relative_mouse_pos(e);
-      let placex = place_cord.x - this.scroller.clientWidth + 100 + this.content.extent.x.min;
-      let placey = place_cord.y - this.scroller.clientHeight + 100 + this.content.extent.y.min;
+      const place_cord = get_diagram_cord(e);
+      let placex = place_cord.x;
+      let placey = place_cord.y;
       
       const toffs = selection_move_start.toffs;
 
@@ -196,18 +197,20 @@ function SynopsisDiagram(workspace) {
   const place_procedure = (e) => {
   
     e.preventDefault();
-  
+    
+    const place_cord = get_diagram_cord(e);
     const prop = {};
     const new_node = new SynopsisNode();
-    const place_cord = this.get_relative_mouse_pos(e);
-  
-    prop.x = place_cord.x - this.scroller.clientWidth + 100 + this.content.extent.x.min;
-    prop.y = place_cord.y - this.scroller.clientHeight + 100 + this.content.extent.y.min;
+
+    prop.x = place_cord.x;
+    prop.y = place_cord.y;
     prop.html = "<div style=\"color: white; background-color: gray;padding: 15px\">Node</div>";
   
     place_node(new_node, prop);
-  
+
   }
+
+  // ---------------------------------------------------------------------------
 
   this.get_relative_mouse_pos = (e) => {
     const rect = this.scroller.getBoundingClientRect();
@@ -300,6 +303,7 @@ function SynopsisDiagram(workspace) {
 
     this.scroller           = this.element.querySelector('*.diagram-dynamic-foreground'); 
     this.container          = this.element.querySelector('*.diagram-content-container');
+    this.dynamic_foreground = this.element.querySelector('*.diagram-dynamic-foreground');
     this.static_background  = this.element.querySelector('*.diagram-static-background');
 
     this.content    = new SynopsisContent(this.container);
@@ -314,16 +318,21 @@ function SynopsisDiagram(workspace) {
     }
     
     this.scroller.onscroll = (e) => {
+      
+      if (!disable_scroll_once) {
+        this.update_translation(e); 
+      }
+      
+      disable_scroll_once = false;
 
-      this.update(e); 
       drag_update(last_move_event);
-
+    
     }
 
     this.loaded = true;
     
     this.update();
-    this.setTranslation(0, 0);
+    this.set_translation(0, 0);
     
   });
 
@@ -342,38 +351,63 @@ function SynopsisDiagram(workspace) {
 
     this.on_focus_document.trigger(json);
 
-    this.setTranslation(0, 0);
+    this.set_translation(0, 0);
 
   }
 
   // Update state of diagram
   this.update = () => {
+    this.update_size();
+    this.update_scroll_pos();
+  }
 
-    const x = (this.scroller.scrollWidth -  this.scroller.offsetWidth)  * 0.5 - this.scroller.scrollLeft;
-    const y = (this.scroller.scrollHeight - this.scroller.offsetHeight) * 0.5 - this.scroller.scrollTop;
-
-    this.translation.x = x - this.content.element.offsetWidth * 0.5 - this.content.extent.x.min;
-    this.translation.y = y - this.content.element.offsetHeight * 0.5 - this.content.extent.y.min;
-    
-    this.on_translate.trigger({ x: this.translation.x, y: this.translation.y });
-
-    //Keep scrollbar size updated
+  this.update_size = () => {
     this.container.style.padding = (this.scroller.clientHeight - 100) + "px " + (this.scroller.clientWidth - 100) + "px";
+  }
+
+  // Get scroll pos based on translation
+  this.update_scroll_pos = () => {
+   
+    const paddingx = (this.scroller.clientWidth - 100);
+    const paddingy = (this.scroller.clientHeight - 100);
+    const cx = this.dynamic_foreground.clientWidth * 0.5;
+    const cy = this.dynamic_foreground.clientHeight * 0.5;
+
+    this.scroller.scrollLeft = paddingx - this.content.extent.x.min - cx - this.translation.x;
+    this.scroller.scrollTop = paddingy - this.content.extent.y.min - cy - this.translation.y; 
+
+    disable_scroll_once = true;
+
+    this.on_translate.trigger({ x: this.translation.x, y: this.translation.y });
 
   }
 
-  // Translate view of diagram
-  this.setTranslation = (x, y) => {
-    this.scroller.scrollLeft  = (this.scroller.scrollWidth - this.scroller.offsetWidth) * 0.5 - x;
-    this.scroller.scrollTop   = (this.scroller.scrollHeight - this.scroller.offsetHeight) * 0.5 - y;
-    this.update();
+  // Get translation based on scrollLeft
+  this.update_translation = () => {
+    
+    const paddingx = (this.scroller.clientWidth - 100);
+    const paddingy = (this.scroller.clientHeight - 100);
+    const cx = this.dynamic_foreground.clientWidth * 0.5;
+    const cy = this.dynamic_foreground.clientHeight * 0.5;
+
+    this.translation.x = paddingx - this.content.extent.x.min - cx - this.scroller.scrollLeft;
+    this.translation.y = paddingy - this.content.extent.y.min - cy - this.scroller.scrollTop; 
+
+    this.on_translate.trigger({ x: this.translation.x, y: this.translation.y });
+  
+  }
+
+  this.set_translation = (x, y) => {
+    this.translation.x = x;
+    this.translation.y = y;
+    this.update_scroll_pos();
   }
   
   this.spawn = parent_generator => {
 
     placeInDOM(
       `
-        <div class="diagram-root" style='z-index: 0; position: relative; display: inline-block; overflow: hidden; width: 100%; height: 100%; background-color: rgb(41, 41, 41);'>
+        <div class="diagram-root" style='z-index: 0; position: relative; display: inline-block; overflow: hidden; width: 100%; height: 100%; background-color: #242424;'>
           <div class="diagram-static-background" style='z-index: 1; position: absolute; top: 0; left: 0; right: 0; bottom: 0;'>
           </div>
           <div class="diagram-dynamic-foreground" style='z-index: 100; overflow: scroll; position: absolute; top: 0; left: 0; right: 0; bottom: 0;'>

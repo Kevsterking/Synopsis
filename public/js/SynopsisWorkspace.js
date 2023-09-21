@@ -93,7 +93,7 @@ function SynopsisWorkspace(parent_generator) {
             tab.highlight();
         }
 
-        const prim_tab = this.add_tab("New Diagram");
+        const prim_tab = this.add_tab("New diagram");
 
         this.select_tab(prim_tab);
 
@@ -108,6 +108,7 @@ function SynopsisWorkspace(parent_generator) {
             <div style='display: flex;flex-direction: column;flex-grow:1;'>
                 
                 <div class="workspace-tabs" style='font-family:arial;cursor: pointer;display: flex;gap:1px;background-color: rgb(47, 47, 47);'>
+                    
                     <div style="display: flex;gap:1px;" class="workspace-tabs-container">
                     </div>
                     <div class="workspace-add-tab" style="color:rgba(255, 255, 255, 0.4);font-size:16px;padding: 8px 10px;background-color:#1e1e1e;">
@@ -116,24 +117,20 @@ function SynopsisWorkspace(parent_generator) {
                     
                 </div>
 
-                <style>
-                    div.workspace-add-tab:hover {
-                        color: rgba(255, 255, 255, 0.7);
-                        background-color: white;
-                    }
-                </style>
-
                 <div style='display: flex;background-color: rgb(41, 41, 41);font-size:12px;padding: 0 10px;'>
                     <div style='padding: 3px 10px;'>A</div>
                     <div style='padding: 3px 10px;'>B</div>
                     <div style='padding: 3px 10px;'>C</div>
                 </div>
             
-                <div class="workspace-diagram" style='position:relative;overflow:hidden;flex-grow: 1;'></div>
+                <div class="workspace-diagram" style='position:relative;overflow:hidden;flex-grow: 1;'>
+                </div>
             
             </div>
 
-            <div class="workspace-editor" style='width: 400px;'></div>
+            <div class="workspace-editor" style='width: 400px;'>
+                <p style="display: block;text-align:center;background-color: #1e1e1e;padding: 8px;">Hello</p>
+            </div>
 
         </div>
     `,

@@ -61,7 +61,6 @@ function SynopsisGrid(diagram) {
     this.context.stroke();    
 
     /* Draw origin lines */
-    /*
     this.context.beginPath();
     this.context.strokeStyle = "rgb(80, 80, 80)";
     this.context.moveTo(this.origin.x, 0);
@@ -70,7 +69,7 @@ function SynopsisGrid(diagram) {
     this.context.lineTo(this.element.offsetWidth, this.origin.y);
     this.context.closePath();
     this.context.stroke();
-    */
+    
     this.context.translate(-0.5, -0.5);
     
   };
