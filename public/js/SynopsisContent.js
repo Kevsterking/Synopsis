@@ -80,7 +80,7 @@ function SynopsisContent(parent_generator) {
 
   placeInDOM(
     `
-      <div class="diagram-nodes" style="box-sizing: content-box;">
+      <div class="diagram-nodes" style="box-sizing: content-box;border:1px solid white;">
         <div class="diagram-nodes-translator" style="width: 0;">
         </div>
       </div>

@@ -61,7 +61,6 @@ function SynopsisTab(name, content_box) {
             this.diagram_element.style.display = "block";
             x_dom.style.visibility = "visible";
             element.style.backgroundColor = "rgb(41, 41, 41)";
-            
         }
     
         this.dehighlight = () => {

@@ -8,22 +8,29 @@ function SynopsisGrid(diagram) {
 
   this.loaded = false;
 
-  this.origin = { x: 0, y: 0 };
+  this.translation  = { x: 0, y: 0 };
+  this.origin       = { x: 0, y: 0 };
 
   this.on_load = new SynopsisEvent();
+
+  this.update_origin = () => {
+    this.origin.x = this.context.canvas.width * 0.5 + this.translation.x;
+    this.origin.y = this.context.canvas.height * 0.5 + this.translation.y;
+    this.update();
+  }
 
   const update_dimensions = () => {
     this.context.canvas.width = this.element.offsetWidth;
     this.context.canvas.height = this.element.offsetHeight;
+    this.update_origin();
   }
 
-  // Set the translation of the grid
   this.setTranslation = (x, y) => {
-    this.origin.x = this.context.canvas.width * 0.5 + x;
-    this.origin.y = this.context.canvas.height * 0.5 + y;
+    this.translation.x = x;
+    this.translation.y = y;
+    this.update_origin();
   }
 
-  // Draw the grid to canvas
   this.update = () => {
 
     // Clear the canvas before drawing new gridlines
@@ -61,7 +68,6 @@ function SynopsisGrid(diagram) {
     this.context.stroke();    
 
     /* Draw origin lines */
-    /*
     this.context.beginPath();
     this.context.strokeStyle = "rgb(80, 80, 80)";
     this.context.moveTo(this.origin.x, 0);
@@ -70,7 +76,7 @@ function SynopsisGrid(diagram) {
     this.context.lineTo(this.element.offsetWidth, this.origin.y);
     this.context.closePath();
     this.context.stroke();
-    */
+    
     this.context.translate(-0.5, -0.5);
     
   };

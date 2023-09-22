@@ -66,10 +66,9 @@ function SynopsisDiagram(workspace) {
   const extent_change = () => {
     
     debug("[Diagram] - extent change");
-  
-    this.update_size();
-    this.update_scroll_pos();
-    
+
+    this.update();
+
   }
   
   const select_node = (node) => {
@@ -214,7 +213,7 @@ function SynopsisDiagram(workspace) {
 
   this.get_relative_mouse_pos = (e) => {
     const rect = this.scroller.getBoundingClientRect();
-    return { x: e.x + this.scroller.scrollLeft - rect.left, y: e.y + this.scroller.scrollTop - rect.top};
+    return { x: e.x + this.scr.position.x - rect.left, y: e.y + this.scr.position.y - rect.top};
   } 
 
   this.on_resize.subscribe(() => {
@@ -234,7 +233,6 @@ function SynopsisDiagram(workspace) {
           e.preventDefault();
         }
       }
-      //  else console.log(e.key);
     }
 
     const key_listen_up = (e) => {
@@ -261,7 +259,6 @@ function SynopsisDiagram(workspace) {
     });
 
     element.addEventListener("mouseenter", () => {
-      //console.log("mouse leave");
       window.addEventListener("keydown", key_listen_down);
       window.addEventListener("keyup", key_listen_up);
     });
@@ -306,7 +303,8 @@ function SynopsisDiagram(workspace) {
     this.dynamic_foreground = this.element.querySelector('*.diagram-dynamic-foreground');
     this.static_background  = this.element.querySelector('*.diagram-static-background');
 
-    this.content    = new SynopsisContent(this.container);
+    this.scr = new SynopsisScroll(this.scroller);
+    this.content = new SynopsisContent(this.container);
     
     this.content.on_extent_change.subscribe(extent_change);
 
@@ -317,10 +315,10 @@ function SynopsisDiagram(workspace) {
       }
     }
         
-    this.scroller.onscroll = (e) => {
-      this.update_translation(e); 
+    this.scr.on_scroll.subscribe(() => {
+      this.update_translation();
       drag_update(last_move_event);
-    };
+    });
 
     this.loaded = true;
 
@@ -366,10 +364,10 @@ function SynopsisDiagram(workspace) {
     const cx = this.dynamic_foreground.clientWidth * 0.5;
     const cy = this.dynamic_foreground.clientHeight * 0.5;
 
-    this.scroller.scrollLeft = paddingx - this.content.extent.x.min - cx - this.translation.x;
-    this.scroller.scrollTop = paddingy - this.content.extent.y.min - cy - this.translation.y; 
+    const scr_x = paddingx - this.content.extent.x.min - cx - this.translation.x;
+    const scr_y = paddingy - this.content.extent.y.min - cy - this.translation.y;
 
-    this.on_translate.trigger({ x: this.translation.x, y: this.translation.y });
+    this.scr.set_position(scr_x, scr_y);
 
   }
 
@@ -381,8 +379,8 @@ function SynopsisDiagram(workspace) {
     const cx = this.dynamic_foreground.clientWidth * 0.5;
     const cy = this.dynamic_foreground.clientHeight * 0.5;
 
-    this.translation.x = paddingx - this.content.extent.x.min - cx - this.scroller.scrollLeft;
-    this.translation.y = paddingy - this.content.extent.y.min - cy - this.scroller.scrollTop; 
+    this.translation.x = paddingx - this.content.extent.x.min - cx - this.scr.position.x;
+    this.translation.y = paddingy - this.content.extent.y.min - cy - this.scr.position.y; 
 
     this.on_translate.trigger({ x: this.translation.x, y: this.translation.y });
   
@@ -401,7 +399,7 @@ function SynopsisDiagram(workspace) {
         <div class="diagram-root" style='z-index: 0; position: relative; display: block; overflow: hidden; width: 100%; height: 100%; background-color: #242424;'>
           <div class="diagram-static-background" style='z-index: 1; position: absolute; top: 0; left: 0; right: 0; bottom: 0;'>
           </div>
-          <div class="diagram-dynamic-foreground" style='z-index: 100; overflow: scroll; position: absolute; top: 0; left: 0; right: 0; bottom: 0;'>
+          <div class="diagram-dynamic-foreground" style='z-index: 100; overflow: hidden; position: absolute; top: 0; left: 0; right: 0; bottom: 0;'>
             <div class="diagram-content-container" style='position: relative; overflow: hidden; float: left;'>
             </div>
           </div>
