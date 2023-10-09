@@ -8,7 +8,7 @@ let testdata = null;
 
 get_json("nodetest.json", (dat) => {testdata = dat;})
 
-function SynopsisDiagram(workspace) {
+function SynopsisDiagram() {
 
   this.loaded = false;
 

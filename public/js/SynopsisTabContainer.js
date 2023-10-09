@@ -11,7 +11,6 @@ function SynopsisTabContainer() {
 
     const select_tab = tab => {
         this.tabs.forEach(t => t.hide());
-        console.log(tab);
         tab.show();
         this.selected_tab = tab;
     }

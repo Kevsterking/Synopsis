@@ -5,23 +5,23 @@ function SynopsisTab(name, content_box) {
 
     this.highlighted = false;
 
-    this.on_load    = new SynopsisEvent();
-    this.on_click   = new SynopsisEvent(); 
-    this.on_close   = new SynopsisEvent();
-    this.on_delete  = new SynopsisEvent();
+    this.on_load            = new SynopsisEvent();
+    this.on_click           = new SynopsisEvent(); 
+    this.on_close           = new SynopsisEvent();
+    this.on_delete          = new SynopsisEvent();
     
-    this.diagram = new SynopsisDiagram();
+    this.showing = false;
 
-    this.delete = this.on_delete.trigger;
+    this.content = new SynopsisDocument();
 
-    this.on_load.subscribe(element => {
+    // ---------------------------------------------------------------------------
+
+    const tab_load = element => {
         
         const x_dom = element.querySelector("p.x-box");
 
-        this.diagram.spawn(content_box);
-
         this.on_delete.subscribe(() => {
-            element.outerHTML = "";
+            element.remove();
         });
 
         element.addEventListener("click", this.on_click.trigger);
@@ -51,32 +51,56 @@ function SynopsisTab(name, content_box) {
             this.on_close.trigger(e);
         });
 
-        this.show = () => {
-            this.showing = true;
-            x_dom.style.visibility = "visible";
-            element.style.backgroundColor = "rgb(41, 41, 41)";
-            content_box.style.display = "block";
-        }
+        place_in_dom(
+            `<div class="synopsis-tab-content" style='width:100%;height:100%;'>
+            </div>`,
+            content_box,
+            el => {
 
-        this.hide = () => {
-            this.showing = false;
-            x_dom.style.visibility = "hidden";
-            element.style.backgroundColor = "#1e1e1e";
-            content_box.style.display = "none";
-        }
+                this.content.spawn(el);
 
-    });
+                this.on_delete.subscribe(() => {
+                    el.remove();
+                });
+
+                this.show = () => {
+                    this.showing = true;
+                    x_dom.style.visibility = "visible";
+                    element.style.backgroundColor = "rgb(41, 41, 41)";
+                    el.style.display = "block";
+                }
+        
+                this.hide = () => {
+                    this.showing = false;
+                    x_dom.style.visibility = "hidden";
+                    element.style.backgroundColor = "#1e1e1e";
+                    el.style.display = "none";
+                }
+
+                this.on_load.trigger(el);
+
+            }
+        );
+    
+    }
+
+    // ---------------------------------------------------------------------------
+
+    this.delete = () => {
+        this.on_delete.trigger();
+    }
 
     this.spawn = parent_generator => {
         place_in_dom(
-            `<div style='background-color: #1e1e1e;display: flex;align-items:center;gap: 10px;padding: 8px 10px;'>
+            `<div class="synopsis-tab" style='user-select: none;background-color: #1e1e1e;display: flex;align-items:center;gap: 10px;padding: 8px 10px;'>
                 <div style="border-radius:50%;background-color:red;width:5px;height:5px;"></div>
                 <p>`+this.name+`</p>
                 <p class="x-box" style="font-size: 12px;color:rgba(255, 255, 255, 0.4);visibility: hidden;padding: 3px;">X</p>
             </div>`,
             parent_generator,
-            this.on_load.trigger
+            tab_load
         );
+
     } 
 
 }
