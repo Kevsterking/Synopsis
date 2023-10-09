@@ -3,7 +3,8 @@ function SynopsisDocument() {
     this.on_load = new SynopsisEvent();
 
     this.text_editor    = new SynopsisMonacoEditor();
-    this.content        = new SynopsisDiagram();
+    this.node_container = new SynopsisNodeContainer();
+    this.content        = new SynopsisCoordinateSystem(this.node_container);
 
     this.document = {};
     this.focused_document = this.document;

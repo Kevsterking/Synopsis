@@ -1,14 +1,7 @@
-// --------------------------------------------------------------------
-
-// Diagram
-
-// --------------------------------------------------------------------
-
 let testdata = null;
-
 get_json("nodetest.json", (dat) => {testdata = dat;})
 
-function SynopsisDiagram() {
+function SynopsisCoordinateSystem(content) {
 
   this.loaded = false;
 
@@ -17,6 +10,7 @@ function SynopsisDiagram() {
   this.on_translate       = new SynopsisEvent();
   this.on_focus_document  = new SynopsisEvent();
 
+  this.content    = content;
   this.background = new SynopsisGrid(this);   
 
   this.selected = new Set();
@@ -33,8 +27,6 @@ function SynopsisDiagram() {
   let selection_move_start  = false;
 
   let last_move_event = null;
-
-  let disable_scroll_once = false;
 
   // ---------------------------------------------------------------------------
 
@@ -211,16 +203,11 @@ function SynopsisDiagram() {
 
   // ---------------------------------------------------------------------------
 
-  this.get_relative_mouse_pos = (e) => {
-    const rect = this.scroller.getBoundingClientRect();
-    return { x: e.x + this.scr.position.x - rect.left, y: e.y + this.scr.position.y - rect.top};
-  } 
-
   this.on_resize.subscribe(() => {
     this.update();
   });
   
-  this.on_load.subscribe((element) => {
+  this.on_load.subscribe(element => {
     
     resize_observer.observe(element);
     element.onresize = this.on_resize.trigger;
@@ -274,7 +261,6 @@ function SynopsisDiagram() {
     });
 
     element.addEventListener("mouseleave", (e) => {
-      //console.log("mouse enter");
       window.removeEventListener("keydown", key_listen_down);
       window.removeEventListener("keydown", key_listen_up);
     });
@@ -304,7 +290,7 @@ function SynopsisDiagram() {
     this.static_background  = this.element.querySelector('*.diagram-static-background');
 
     this.scr = new SynopsisScroll(this.scroller);
-    this.content = new SynopsisContent(this.container);
+    this.content.spawn(this.container);
     
     this.content.on_extent_change.subscribe(extent_change);
 
@@ -326,6 +312,13 @@ function SynopsisDiagram() {
     this.set_translation(0, 0);
     
   });
+
+  // ---------------------------------------------------------------------------
+
+  this.get_relative_mouse_pos = (e) => {
+    const rect = this.scroller.getBoundingClientRect();
+    return { x: e.x + this.scr.position.x - rect.left, y: e.y + this.scr.position.y - rect.top};
+  } 
 
   this.load_content = (json) => {
     
