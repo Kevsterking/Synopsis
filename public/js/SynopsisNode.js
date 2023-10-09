@@ -64,7 +64,7 @@ function SynopsisNode() {
   });
 
   this.spawn = (parent_generator, x, y) => {
-    placeInDOM(domstr, parent_generator, (el) => {
+    place_in_dom(domstr, parent_generator, (el) => {
       this.on_load.trigger(el);
       this.set_pos(x, y);
     });

@@ -103,7 +103,7 @@ function SynopsisGrid(diagram) {
   });
 
   diagram.on_load.subscribe((diagram_element) => {
-    placeInDOM(
+    place_in_dom(
       `
         <canvas class="diagram-canvas" style='z-index: 1; position: absolute; left:0;top:0; width: 100%; height: 100%;'>
         </canvas>

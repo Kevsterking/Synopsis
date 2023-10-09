@@ -151,7 +151,7 @@ function SynopsisDiagram(workspace) {
 
       });
 
-      placeInDOM(prop.html, element, null);
+      place_in_dom(prop.html, element, null);
   
     }
   } 
@@ -394,7 +394,7 @@ function SynopsisDiagram(workspace) {
   
   this.spawn = parent_generator => {
 
-    placeInDOM(
+    place_in_dom(
       `
         <div class="diagram-root" style='z-index: 0; position: relative; display: block; overflow: hidden; width: 100%; height: 100%; background-color: #242424;'>
           <div class="diagram-static-background" style='z-index: 1; position: absolute; top: 0; left: 0; right: 0; bottom: 0;'>

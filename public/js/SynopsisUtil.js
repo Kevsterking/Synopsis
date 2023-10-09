@@ -6,7 +6,7 @@
 
 // Append html node from string to dom element either generated at load 
 // ex. () => document.getElementById('id-here') or simply a dom element by value
-function placeInDOM(element_string, get_parent_dom, callback) {
+function place_in_dom(element_string, get_parent_dom, callback) {
 
   // Creating the node from a string
   function getHtmlNode(html_string) {

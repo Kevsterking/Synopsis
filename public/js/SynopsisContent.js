@@ -78,7 +78,7 @@ function SynopsisContent(parent_generator) {
     
   }
 
-  placeInDOM(
+  place_in_dom(
     `
       <div class="diagram-nodes" style="box-sizing: content-box;border:1px solid white;">
         <div class="diagram-nodes-translator" style="width: 0;">

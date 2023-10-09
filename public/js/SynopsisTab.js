@@ -18,11 +18,6 @@ function SynopsisTab(name, content_box) {
         
         const x_dom = element.querySelector("p.x-box");
 
-        this.diagram.on_load.subscribe(diagram_element => {
-            this.diagram_element = diagram_element;
-            diagram_element.style.display = "none";
-        });
-
         this.diagram.spawn(content_box);
 
         this.on_delete.subscribe(() => {
@@ -56,24 +51,24 @@ function SynopsisTab(name, content_box) {
             this.on_close.trigger(e);
         });
 
-        this.highlight = () => {
-            this.highlighted = true;
-            this.diagram_element.style.display = "block";
+        this.show = () => {
+            this.showing = true;
             x_dom.style.visibility = "visible";
             element.style.backgroundColor = "rgb(41, 41, 41)";
+            content_box.style.display = "block";
         }
-    
-        this.dehighlight = () => {
-            this.highlighted = false;
-            this.diagram_element.style.display = "none";
+
+        this.hide = () => {
+            this.showing = false;
             x_dom.style.visibility = "hidden";
             element.style.backgroundColor = "#1e1e1e";
+            content_box.style.display = "none";
         }
 
     });
 
     this.spawn = parent_generator => {
-        placeInDOM(
+        place_in_dom(
             `<div style='background-color: #1e1e1e;display: flex;align-items:center;gap: 10px;padding: 8px 10px;'>
                 <div style="border-radius:50%;background-color:red;width:5px;height:5px;"></div>
                 <p>`+this.name+`</p>
