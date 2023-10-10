@@ -25,22 +25,25 @@ function SynopsisGrid() {
 
   const update = () => {
 
+    const w = this.element.offsetWidth;
+    const h = this.element.offsetHeight;
+
     // Clear the canvas before drawing new gridlines
-    this.context.clearRect(0, 0, this.element.offsetWidth, this.element.offsetHeight);
+    this.context.clearRect(0, 0, w, h);
   
     // This is fucking bizzarre but it works (straddling)
     this.context.translate(0.5, 0.5); 
 
     // Draw full gridlines
     this.context.beginPath();
-    this.context.strokeStyle = "rgb(40, 40, 40)";
-    for (let x = this.origin.x % 100 - 50; x < this.element.offsetWidth; x += 100) {
+    this.context.strokeStyle = "rgb(50, 50, 50)";
+    for (let x = this.origin.x % 100 - 50; x < w; x += 100) {
       this.context.moveTo(x, 0);
-      this.context.lineTo(x, this.element.offsetHeight);
+      this.context.lineTo(x, h);
     }
-    for (let y = this.origin.y % 100 - 50; y < this.element.offsetHeight; y += 100) {
+    for (let y = this.origin.y % 100 - 50; y < h; y += 100) {
       this.context.moveTo(0, y);
-      this.context.lineTo(this.element.offsetWidth, y);
+      this.context.lineTo(w, y);
     }
     this.context.closePath();
     this.context.stroke();
@@ -48,13 +51,13 @@ function SynopsisGrid() {
     // Draw half gridlines 
     this.context.beginPath();
     this.context.strokeStyle = "rgb(50, 50, 50)";
-    for (let x = this.origin.x % 100; x < this.element.offsetWidth; x += 100) {
+    for (let x = this.origin.x % 100; x < w; x += 100) {
       this.context.moveTo(x, 0);
-      this.context.lineTo(x, this.element.offsetHeight);
+      this.context.lineTo(x, h);
     }
-    for (let y = this.origin.y % 100; y < this.element.offsetHeight; y += 100) {
+    for (let y = this.origin.y % 100; y < h; y += 100) {
       this.context.moveTo(0, y);
-      this.context.lineTo(this.element.offsetWidth, y);
+      this.context.lineTo(w, y);
     }
     this.context.closePath();
     this.context.stroke();    
@@ -63,9 +66,9 @@ function SynopsisGrid() {
     this.context.beginPath();
     this.context.strokeStyle = "rgb(80, 80, 80)";
     this.context.moveTo(this.origin.x, 0);
-    this.context.lineTo(this.origin.x, this.element.offsetHeight);
+    this.context.lineTo(this.origin.x, h);
     this.context.moveTo(0, this.origin.y);
-    this.context.lineTo(this.element.offsetWidth, this.origin.y);
+    this.context.lineTo(w, this.origin.y);
     this.context.closePath();
     this.context.stroke();
     

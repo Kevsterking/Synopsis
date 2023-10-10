@@ -1,5 +1,5 @@
 let testdata = null;
-get_json("nodetest.json", (dat) => {testdata = dat;})
+get_json("nodetest.json", dat => {testdata = dat;})
 
 function SynopsisCoordinateSystem(content) {
 
@@ -8,15 +8,23 @@ function SynopsisCoordinateSystem(content) {
   this.on_translate       = new SynopsisEvent();
   this.on_focus_document  = new SynopsisEvent();
 
+  this.scroller = new SynopsisScroller();
+
   this.content    = content;
   this.background = new SynopsisGrid();   
 
   this.selected = new Set();
   this.nodes    = new Set();
 
-  this.translation = new SynopsisCoordinate();
+  this.content_container = null;
+
+  this.padding          = new SynopsisCoordinate(); 
+  this.translation      = new SynopsisCoordinate();
+  this.scroll_position  = new SynopsisCoordinate();
 
   // ---------------------------------------------------------------------------
+
+  const inset_padding = 100;
 
   let ctrl_pressed = false;
 
@@ -43,13 +51,13 @@ function SynopsisCoordinateSystem(content) {
   }
 
   const get_event_relative_pos = e => {
-    const rect = this.scroller.getBoundingClientRect();
-    return new SynopsisCoordinate(e.x + this.scr.position.x - rect.left, e.y + this.scr.position.y - rect.top);
+    const rect = this.content_dom.getBoundingClientRect();
+    return new SynopsisCoordinate(e.x + this.scroll_position.x - rect.left, e.y + this.scroll_position.y - rect.top);
   } 
 
   const get_event_coordinate = e => {
     const rel_cord = get_event_relative_pos(e);
-    return new SynopsisCoordinate(this.content.extent.x.min - (this.scroller.clientWidth - 100) + rel_cord.x, this.content.extent.y.min - (this.scroller.clientHeight - 100) + rel_cord.y);
+    return new SynopsisCoordinate(this.content.extent.x.min - (this.content_dom.clientWidth - inset_padding) + rel_cord.x, this.content.extent.y.min - (this.content_dom.clientHeight - inset_padding) + rel_cord.y);
   }
 
   const clear_diagram = () => {
@@ -64,10 +72,6 @@ function SynopsisCoordinateSystem(content) {
         return false;
       }
     });
-  }
-  
-  const extent_change = () => {
-    this.update();
   }
   
   const select_node = (node) => {
@@ -212,60 +216,61 @@ function SynopsisCoordinateSystem(content) {
   }
 
   const update_size = () => {
-    this.container.style.padding = (this.scroller.clientHeight - 100) + "px " + (this.scroller.clientWidth - 100) + "px";
-  }
-
-  const update_scroll_pos = () => {
-   
-    const paddingx = (this.scroller.clientWidth - 100);
-    const paddingy = (this.scroller.clientHeight - 100);
-    const cx = this.dynamic_foreground.clientWidth * 0.5;
-    const cy = this.dynamic_foreground.clientHeight * 0.5;
-
-    const scr_x = paddingx - this.content.extent.x.min - cx - this.translation.x;
-    const scr_y = paddingy - this.content.extent.y.min - cy - this.translation.y;
-
-    this.scr.set_position(scr_x, scr_y);
-
+    const cx = this.content_dom.clientWidth * 0.5;
+    const cy = this.content_dom.clientHeight * 0.5;
+    this.padding.x = this.content_dom.clientWidth - inset_padding;
+    this.padding.y = this.content_dom.clientHeight - inset_padding;
+    this.scroller.extent.x.min = this.content.extent.x.min - this.padding.x + cx;
+    this.scroller.extent.x.max = this.content.extent.x.max + this.padding.x - cx;
+    this.scroller.extent.y.min = this.content.extent.y.min - this.padding.y + cy;
+    this.scroller.extent.y.max = this.content.extent.y.max + this.padding.y - cy;
+    this.content_container.style.padding = this.padding.y + "px " + this.padding.x + "px";
   }
 
   const update_translation = () => {
-    
-    const paddingx = (this.scroller.clientWidth - 100);
-    const paddingy = (this.scroller.clientHeight - 100);
-    const cx = this.dynamic_foreground.clientWidth * 0.5;
-    const cy = this.dynamic_foreground.clientHeight * 0.5;
-
-    this.translation.x = paddingx - this.content.extent.x.min - cx - this.scr.position.x;
-    this.translation.y = paddingy - this.content.extent.y.min - cy - this.scr.position.y; 
-
+    const cx = this.content_dom.clientWidth * 0.5;
+    const cy = this.content_dom.clientHeight * 0.5;
+    const scr_x = this.padding.x - this.content.extent.x.min - cx - this.translation.x;
+    const scr_y = this.padding.y - this.content.extent.y.min - cy - this.translation.y;
     this.background.set_translation(this.translation.x, this.translation.y);
+    this.content_dom.scrollLeft = this.scroll_position.x = scr_x;
+    this.content_dom.scrollTop = this.scroll_position.y = scr_y;
+  }
 
+  const set_translation = (x, y) => {
+    this.translation.x = x;
+    this.translation.y = y;
+    update_translation();
+  }
+
+  const on_scroll = position => {
+    set_translation(-position.x, -position.y);
+    if (move_state.drag_node) update_move(move_state.last_event);
+  }
+
+  const full_update = () => {
+    update_size();
+    update_translation();
   }
 
   // ---------------------------------------------------------------------------
 
-  this.on_resize.subscribe(() => {
-    this.update();
-  });
-  
+  this.on_resize.subscribe(full_update);
+
   this.on_load.subscribe(element => {
+
+    const background_container  = element.querySelector("div.synopsis-coordinate-system-background");
+    this.content_dom            = element.querySelector("div.synopsis-coordinate-system-content");
+    this.content_container      = element.querySelector("div.synopsis-coordinate-system-content-container");
     
-    this.element            = element;
+    this.scroller.bind(this.content_dom, on_scroll, false);
 
-    this.scroller           = this.element.querySelector('*.diagram-dynamic-foreground'); 
-    this.container          = this.element.querySelector('*.diagram-content-container');
-    this.dynamic_foreground = this.element.querySelector('*.diagram-dynamic-foreground');
-    this.static_background  = this.element.querySelector('*.diagram-static-background');
+    this.content.spawn(this.content_container);
+    this.background.spawn(background_container);
 
-    this.scr = new SynopsisScroll(this.scroller);
-    
-    this.content.spawn(this.container);
-    this.background.spawn(this.static_background);
+    this.content.on_extent_change.subscribe(full_update);
 
-    this.content.on_extent_change.subscribe(extent_change);
-
-    synopsis_resize_observer.observe(this.element, this.on_resize.trigger);
+    synopsis_resize_observer.observe(element, this.on_resize.trigger);
 
     element.addEventListener("wheel", (e) => {
 
@@ -321,20 +326,14 @@ function SynopsisCoordinateSystem(content) {
       
     });
 
-    this.container.oncontextmenu  = (e) => {
+    this.content_container.oncontextmenu  = (e) => {
       e.preventDefault();
       if (!is_node(e.target)) {
         create_node(e);
       }
     }
-        
-    this.scr.on_scroll.subscribe(() => {
-      this.update_translation();
-      if (move_state.drag_node) update_move(move_state.last_event);
-    });
 
-    this.update();
-    this.set_translation(0, 0);
+    full_update();
     
   });
 
@@ -342,7 +341,7 @@ function SynopsisCoordinateSystem(content) {
 
   this.get_relative_mouse_pos = get_event_relative_pos;
 
-  this.load_content = (json) => {
+  this.load_content = json => {
     
     clear_diagram();
     
@@ -368,32 +367,22 @@ function SynopsisCoordinateSystem(content) {
 
   }
 
-  this.update = () => {
-    update_size();
-    update_scroll_pos();
-  }
-
-  this.update_size = update_size;
-  this.update_scroll_pos = update_scroll_pos;
-  this.update_translation = update_translation;
-
   this.set_translation = (x, y) => {
-    this.translation.x = x;
-    this.translation.y = y;
-    this.background.set_translation(this.translation.x, this.translation.y);
-    this.update_scroll_pos();
+    this.scroller.set_position_no_event(x, y);
+    set_translation(x, y);
   }
   
   this.spawn = parent_generator => {
 
+
     place_in_dom(
       `
-        <div class="diagram-root" style='z-index: 0; position: relative; display: block; overflow: hidden; width: 100%; height: 100%; background-color: #242424;'>
-          <div class="diagram-static-background" style='z-index: 1; position: absolute; top: 0; left: 0; right: 0; bottom: 0;'>
+        <div class="synopsis-coordinate-system" style="position:relative;width:100%;height:100%;">
+          <div class="synopsis-coordinate-system-background" style='z-index: 1; position: absolute; top: 0; left: 0; right: 0; bottom: 0;'>
           </div>
-          <div class="diagram-dynamic-foreground" style='z-index: 100; overflow: hidden; position: absolute; top: 0; left: 0; right: 0; bottom: 0;'>
-            <div class="diagram-content-container" style='position: relative; overflow: hidden; float: left;'>
-            </div>
+          <div class="synopsis-coordinate-system-content" style='z-index: 100; overflow: hidden; position: absolute; top: 0; left: 0; right: 0; bottom: 0;'>
+              <div class="synopsis-coordinate-system-content-container" style="width:fit-content;">
+              </div>
           </div>
         </div>
       `,
