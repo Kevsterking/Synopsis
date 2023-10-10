@@ -24,23 +24,43 @@ function SynopsisCoordinateSystem(content) {
 
   let last_move_event = null;
 
+  let move_state = {
+    drag_node: null,
+    node_offset: new Map(),
+    last_event: null
+  };
+
   // ---------------------------------------------------------------------------
+
+  const key_listen_down = e => {
+    if (e.key == "Delete") delete_selected();
+    else if (e.key == "Control") ctr_down = true;
+    else if (e.key == 's') {
+      if (ctr_down) {
+        e.preventDefault();
+      }
+    }
+  }
+
+  const key_listen_up = e => {
+    if (e.key == "Control") ctr_down = false;
+  }
 
   const get_event_relative_pos = e => {
     const rect = this.scroller.getBoundingClientRect();
-    return { x: e.x + this.scr.position.x - rect.left, y: e.y + this.scr.position.y - rect.top};
+    return new SynopsisCoordinate(e.x + this.scr.position.x - rect.left, e.y + this.scr.position.y - rect.top);
   } 
 
-  const get_event_coord = e => {
+  const get_event_coordinate = e => {
     const rel_cord = get_event_relative_pos(e);
-    return { x: this.content.extent.x.min - (this.scroller.clientWidth - 100) + rel_cord.x, y: this.content.extent.y.min - (this.scroller.clientHeight - 100) + rel_cord.y };
+    return new SynopsisCoordinate(this.content.extent.x.min - (this.scroller.clientWidth - 100) + rel_cord.x, this.content.extent.y.min - (this.scroller.clientHeight - 100) + rel_cord.y);
   }
 
   const clear_diagram = () => {
     this.nodes.forEach(node => node.delete());
   }
 
-  const is_node = (target) => {
+  const is_node = target => {
     return any_of_parents_satisfies(target, (parent) => {
       try {
         return parent.classList.contains("synopsis-node");
@@ -89,6 +109,48 @@ function SynopsisCoordinateSystem(content) {
     this.selected.clear();
   }
   
+  const update_move = e => {
+
+    const event_pos = get_event_coordinate(e);
+    const node_offset = move_state.node_offset.get(move_state.drag_node);
+
+    let place = new SynopsisCoordinate(event_pos.x + node_offset.x, event_pos.y + node_offset.y);
+
+    if (ctr_down) {
+      place.x = Math.round(place.x / 50) * 50;
+      place.y = Math.round(place.y / 50) * 50;
+    }
+
+    place.x -= node_offset.x;
+    place.y -= node_offset.y;
+
+    move_state.node_offset.forEach((v, n) => {
+      n.set_pos(place.x + v.x, place.y + v.y);
+    });
+
+    move_state.last_event = e;
+
+  }
+
+  const start_move = (node, e) => {
+
+    const place = get_event_coordinate(e);
+
+    move_state.node_offset.clear(); 
+    move_state.drag_node = node; 
+    
+    this.selected.forEach(n => {
+        move_state.node_offset.set(n, new SynopsisCoordinate(n.position.x - place.x, n.position.y - place.y));
+    });
+
+    move_state.last_event = e;
+
+  }
+
+  const stop_move = () => {
+    move_state.drag_node = null; 
+  }
+
   const node_load = node => {
     
     return element => {
@@ -100,7 +162,7 @@ function SynopsisCoordinateSystem(content) {
         cancel_dbkclick = true;
       });
 
-      element.addEventListener("mousedown", (e) => {
+      element.addEventListener("mousedown", e => {
 
         e.preventDefault();
 
@@ -116,19 +178,7 @@ function SynopsisCoordinateSystem(content) {
         }
 
         if (this.selected.has(node)) {
-          
-          const place_cord = this.get_relative_mouse_pos(e);
-          const placex = place_cord.x - this.scroller.clientWidth + 100 + this.content.extent.x.min;
-          const placey = place_cord.y - this.scroller.clientHeight + 100 + this.content.extent.y.min;
-          
-          selection_move_start = {};
-          selection_move_start.toffs = { x: node.position.x - placex, y: node.position.y - placey };
-          selection_move_start.pmap = new Map();
-
-          this.selected.forEach(k => {
-            selection_move_start.pmap.set(k, { ox: k.position.x - placex, oy: k.position.y - placey });
-          });
-
+          start_move(node, e);
         }
 
         last_mousedown_time = Date.now();
@@ -138,29 +188,6 @@ function SynopsisCoordinateSystem(content) {
 
     }
   } 
-  
-  const drag_update = (e) => {
-
-    if (selection_move_start) {
-
-      const place_cord = get_event_coord(e);
-      let placex = place_cord.x;
-      let placey = place_cord.y;
-
-      const toffs = selection_move_start.toffs;
-
-      if (ctr_down) {
-        placex = Math.round((placex + toffs.x) / 50) * 50 - toffs.x;
-        placey = Math.round((placey + toffs.y) / 50) * 50 - toffs.y;
-      }
-
-      selection_move_start.pmap.forEach((v, k) => {
-        k.set_pos(placex + v.ox, placey + v.oy);
-      });
-
-    }
-  
-  }
 
   const spawn_node = node => {
 
@@ -181,7 +208,7 @@ function SynopsisCoordinateSystem(content) {
     e.preventDefault();
     
     const new_node = new SynopsisNode();
-    const place_cord = get_event_coord(e);
+    const place_cord = get_event_coordinate(e);
 
     new_node.position.x = place_cord.x;
     new_node.position.y = place_cord.y;
@@ -200,21 +227,21 @@ function SynopsisCoordinateSystem(content) {
   
   this.on_load.subscribe(element => {
     
-    synopsis_resize_observer.observe(element, this.on_resize.trigger);
+    this.element            = element;
 
-    const key_listen_down = (e) => {
-      if (e.key == "Delete") delete_selected();
-      else if (e.key == "Control") ctr_down = true;
-      else if (e.key == 's') {
-        if (ctr_down) {
-          e.preventDefault();
-        }
-      }
-    }
+    this.scroller           = this.element.querySelector('*.diagram-dynamic-foreground'); 
+    this.container          = this.element.querySelector('*.diagram-content-container');
+    this.dynamic_foreground = this.element.querySelector('*.diagram-dynamic-foreground');
+    this.static_background  = this.element.querySelector('*.diagram-static-background');
 
-    const key_listen_up = (e) => {
-      if (e.key == "Control") ctr_down = false;
-    }
+    this.scr = new SynopsisScroll(this.scroller);
+    
+    this.content.spawn(this.container);
+    this.background.spawn(this.static_background);
+
+    this.content.on_extent_change.subscribe(extent_change);
+
+    synopsis_resize_observer.observe(this.element, this.on_resize.trigger);
 
     element.addEventListener("wheel", (e) => {
 
@@ -240,17 +267,16 @@ function SynopsisCoordinateSystem(content) {
       window.addEventListener("keyup", key_listen_up);
     });
 
-    element.addEventListener("mousemove", (e) => {
-      last_move_event = e;
-      drag_update(e);
+    element.addEventListener("mousemove", e => {
+      if (move_state.drag_node) update_move(e);
     });
 
-    element.addEventListener("mouseup", (e) => {
+    element.addEventListener("mouseup", e => {
       if (e.button != 0) return;
-      if (selection_move_start) selection_move_start = false;
+      if (move_state.drag_node) stop_move();
     });
 
-    element.addEventListener("mouseleave", (e) => {
+    element.addEventListener("mouseleave", e => {
       window.removeEventListener("keydown", key_listen_down);
       window.removeEventListener("keydown", key_listen_up);
     });
@@ -264,27 +290,12 @@ function SynopsisCoordinateSystem(content) {
       }
     });
     
-    element.addEventListener("drop", (e) => {
+    element.addEventListener("drop", e => {
       e.preventDefault();
       console.log(e);
       console.log(e.dataTransfer.files[0]);
       
     });
-
-    // load procedure
-    this.element            = element;
-
-    this.scroller           = this.element.querySelector('*.diagram-dynamic-foreground'); 
-    this.container          = this.element.querySelector('*.diagram-content-container');
-    this.dynamic_foreground = this.element.querySelector('*.diagram-dynamic-foreground');
-    this.static_background  = this.element.querySelector('*.diagram-static-background');
-
-    this.scr = new SynopsisScroll(this.scroller);
-    
-    this.content.spawn(this.container);
-    this.background.spawn(this.static_background);
-
-    this.content.on_extent_change.subscribe(extent_change);
 
     this.container.oncontextmenu  = (e) => {
       e.preventDefault();
