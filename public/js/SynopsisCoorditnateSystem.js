@@ -14,15 +14,11 @@ function SynopsisCoordinateSystem(content) {
   this.selected = new Set();
   this.nodes    = new Set();
 
-  this.extent      = new SynopsisExtent();
   this.translation = new SynopsisCoordinate();
 
   // ---------------------------------------------------------------------------
 
-  let ctr_down              = false;
-  let selection_move_start  = false;
-
-  let last_move_event = null;
+  let ctrl_pressed = false;
 
   let move_state = {
     drag_node: null,
@@ -34,16 +30,16 @@ function SynopsisCoordinateSystem(content) {
 
   const key_listen_down = e => {
     if (e.key == "Delete") delete_selected();
-    else if (e.key == "Control") ctr_down = true;
+    else if (e.key == "Control") ctrl_pressed = true;
     else if (e.key == 's') {
-      if (ctr_down) {
+      if (ctrl_pressed) {
         e.preventDefault();
       }
     }
   }
 
   const key_listen_up = e => {
-    if (e.key == "Control") ctr_down = false;
+    if (e.key == "Control") ctrl_pressed = false;
   }
 
   const get_event_relative_pos = e => {
@@ -71,16 +67,12 @@ function SynopsisCoordinateSystem(content) {
   }
   
   const extent_change = () => {
-    
-    debug("[Diagram] - extent change");
-
     this.update();
-
   }
   
   const select_node = (node) => {
     
-    if (ctr_down) {
+    if (ctrl_pressed) {
       
       if (this.selected.has(node)) {
         node.dehighlight();
@@ -116,7 +108,7 @@ function SynopsisCoordinateSystem(content) {
 
     let place = new SynopsisCoordinate(event_pos.x + node_offset.x, event_pos.y + node_offset.y);
 
-    if (ctr_down) {
+    if (ctrl_pressed) {
       place.x = Math.round(place.x / 50) * 50;
       place.y = Math.round(place.y / 50) * 50;
     }
@@ -219,6 +211,38 @@ function SynopsisCoordinateSystem(content) {
 
   }
 
+  const update_size = () => {
+    this.container.style.padding = (this.scroller.clientHeight - 100) + "px " + (this.scroller.clientWidth - 100) + "px";
+  }
+
+  const update_scroll_pos = () => {
+   
+    const paddingx = (this.scroller.clientWidth - 100);
+    const paddingy = (this.scroller.clientHeight - 100);
+    const cx = this.dynamic_foreground.clientWidth * 0.5;
+    const cy = this.dynamic_foreground.clientHeight * 0.5;
+
+    const scr_x = paddingx - this.content.extent.x.min - cx - this.translation.x;
+    const scr_y = paddingy - this.content.extent.y.min - cy - this.translation.y;
+
+    this.scr.set_position(scr_x, scr_y);
+
+  }
+
+  const update_translation = () => {
+    
+    const paddingx = (this.scroller.clientWidth - 100);
+    const paddingy = (this.scroller.clientHeight - 100);
+    const cx = this.dynamic_foreground.clientWidth * 0.5;
+    const cy = this.dynamic_foreground.clientHeight * 0.5;
+
+    this.translation.x = paddingx - this.content.extent.x.min - cx - this.scr.position.x;
+    this.translation.y = paddingy - this.content.extent.y.min - cy - this.scr.position.y; 
+
+    this.background.set_translation(this.translation.x, this.translation.y);
+
+  }
+
   // ---------------------------------------------------------------------------
 
   this.on_resize.subscribe(() => {
@@ -245,7 +269,7 @@ function SynopsisCoordinateSystem(content) {
 
     element.addEventListener("wheel", (e) => {
 
-      if (ctr_down) {
+      if (ctrl_pressed) {
         e.preventDefault();
         if (e.deltaY < 0) this.content.scale_by(1.1);
         else this.content.scale_by(1 / 1.1);
@@ -255,7 +279,7 @@ function SynopsisCoordinateSystem(content) {
 
     element.addEventListener("mousedown", (e) => {
 
-      if (!is_node(e.target) && !ctr_down) {
+      if (!is_node(e.target) && !ctrl_pressed) {
         this.selected.forEach(k => k.dehighlight());
         this.selected.clear();
       }
@@ -306,7 +330,7 @@ function SynopsisCoordinateSystem(content) {
         
     this.scr.on_scroll.subscribe(() => {
       this.update_translation();
-      drag_update(last_move_event);
+      if (move_state.drag_node) update_move(move_state.last_event);
     });
 
     this.update();
@@ -327,7 +351,14 @@ function SynopsisCoordinateSystem(content) {
 
     if (json.nodes) {
       for (const node of json.nodes) {
-        place_node(new SynopsisNode(), node);
+
+        const new_node = new SynopsisNode();
+
+        console.log(node);
+
+
+        //place_node(new SynopsisNode(), node);
+
       }
     }
 
@@ -337,46 +368,14 @@ function SynopsisCoordinateSystem(content) {
 
   }
 
-  // Update state of diagram
   this.update = () => {
-    this.update_size();
-    this.update_scroll_pos();
+    update_size();
+    update_scroll_pos();
   }
 
-  this.update_size = () => {
-    this.container.style.padding = (this.scroller.clientHeight - 100) + "px " + (this.scroller.clientWidth - 100) + "px";
-  }
-
-  // Get scroll pos based on translation
-  this.update_scroll_pos = () => {
-   
-    const paddingx = (this.scroller.clientWidth - 100);
-    const paddingy = (this.scroller.clientHeight - 100);
-    const cx = this.dynamic_foreground.clientWidth * 0.5;
-    const cy = this.dynamic_foreground.clientHeight * 0.5;
-
-    const scr_x = paddingx - this.content.extent.x.min - cx - this.translation.x;
-    const scr_y = paddingy - this.content.extent.y.min - cy - this.translation.y;
-
-    this.scr.set_position(scr_x, scr_y);
-
-  }
-
-  // Get translation based on scrollLeft
-  this.update_translation = () => {
-    
-    const paddingx = (this.scroller.clientWidth - 100);
-    const paddingy = (this.scroller.clientHeight - 100);
-    const cx = this.dynamic_foreground.clientWidth * 0.5;
-    const cy = this.dynamic_foreground.clientHeight * 0.5;
-
-    this.translation.x = paddingx - this.content.extent.x.min - cx - this.scr.position.x;
-    this.translation.y = paddingy - this.content.extent.y.min - cy - this.scr.position.y; 
-
-    this.background.set_translation(this.translation.x, this.translation.y);
-
-    
-  }
+  this.update_size = update_size;
+  this.update_scroll_pos = update_scroll_pos;
+  this.update_translation = update_translation;
 
   this.set_translation = (x, y) => {
     this.translation.x = x;

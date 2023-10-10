@@ -8,8 +8,6 @@ function SynopsisNode() {
   this.position = new SynopsisCoordinate();
   this.extent   = new SynopsisExtent();
 
-  console.log(this.position);
-
   this.content = "";
 
   // --------------------------------------------------------------------

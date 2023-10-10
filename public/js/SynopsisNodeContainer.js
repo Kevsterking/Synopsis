@@ -13,7 +13,9 @@ function SynopsisNodeContainer() {
   }
 
   const update_translation = () => {
-    this.translator.style.transform = "translate(" + (-1-this.extent.x.min) + "px, " + (-1-this.extent.y.min) + "px)";
+    this.translator.style.top   = -this.extent.y.min + "px";
+    this.translator.style.left  = -this.extent.x.min + "px";
+    //this.translator.style.transform = "translate(" + (-1-this.extent.x.min) + "px, " + (-1-this.extent.y.min) + "px)";
   }
 
   const update = () => {
@@ -57,8 +59,8 @@ function SynopsisNodeContainer() {
   this.spawn = parent_generator => {
     place_in_dom(
       `
-        <div class="diagram-nodes" style="box-sizing: content-box;border:1px solid white;">
-          <div class="diagram-nodes-translator" style="width: 0;">
+        <div class="diagram-nodes" style="box-sizing: content-box;position:relative;border:1px solid white;">
+          <div class="diagram-nodes-translator" style="position:absolute;width: 0;">
           </div>
         </div>
       `,

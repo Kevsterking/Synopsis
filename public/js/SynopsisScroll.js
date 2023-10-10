@@ -1,46 +1,54 @@
 function SynopsisScroll(element) {
 
     this.on_scroll = new SynopsisEvent();
-    
+
+    this.position = new SynopsisCoordinate();
+
+    // ---------------------------------------------------------------------------
+
+    const animation_time = 100;
+
+    let state = {
+        begin_time:     null,
+        draw_request:   null,
+        velocity:       new SynopsisCoordinate(),
+        target:         new SynopsisCoordinate(),
+    }
+
     let shift = false;
-
-    this.target_left = 0;
-    this.target_top = 0;
-
-    this.animation_time = 100;
     
-    this.target   = { x: 0, y: 0 };
-    this.position = { x: 0, y: 0 };
-    this.velocity = { x: 0, y: 0 };
-
-    let animation_begin_time = null;
-    this.animation_frame_request = null;
-
-    this.on_scroll.subscribe(() => {
-        element.scrollLeft = this.position.x;
-        element.scrollTop = this.position.y;
-    });
+    // ---------------------------------------------------------------------------
 
     const key_listen_down = e => {
         if (e.key == 'Shift') shift = true; 
     };
+
     const key_listen_up = e => {
         if (e.key == 'Shift') shift = false; 
     };
+
+    // ---------------------------------------------------------------------------
+
+    this.on_scroll.subscribe(() => {
+        element.scrollLeft  = this.position.x;
+        element.scrollTop   = this.position.y;
+    });
+
+    // ---------------------------------------------------------------------------
     
     this.set_position = (left, top) => {
-        element.scrollLeft = this.position.x = this.target.x = left;
-        element.scrollTop = this.position.y = this.target.y = top;
+        element.scrollLeft  = this.position.x = state.target.x = left;
+        element.scrollTop   = this.position.y = state.target.y = top;
     }; 
 
     this.set_target = (left, top) => {
 
-        animation_begin_time = Date.now();
+        state.begin_time = Date.now();
 
-        cancelAnimationFrame(this.animation_frame_request);
+        cancelAnimationFrame(state.draw_request);
         
-        this.target.x = Math.min(Math.max(left, 0), element.scrollWidth - element.clientWidth);
-        this.target.y = Math.min(Math.max(top, 0), element.scrollHeight - element.clientHeight);
+        state.target.x = Math.min(Math.max(left, 0), element.scrollWidth - element.clientWidth);
+        state.target.y = Math.min(Math.max(top, 0), element.scrollHeight - element.clientHeight);
 
         const start = { 
             x: this.position.x, 
@@ -48,25 +56,25 @@ function SynopsisScroll(element) {
         };
 
         const D = { 
-            x: (this.target.x - start.x), 
-            y: (this.target.y - start.y) 
+            x: (state.target.x - start.x), 
+            y: (state.target.y - start.y) 
         };
 
         const v = {
-            x: D.x / (this.animation_time / 1000),
-            y: D.y / (this.animation_time / 1000)
+            x: D.x / (animation_time / 1000),
+            y: D.y / (animation_time / 1000)
         }
 
         const animation_handle = () => {
 
-            const T = Date.now() - animation_begin_time;
-            let t = Math.min(T, this.animation_time) / 1000;
+            const T = Date.now() - state.begin_time;
+            let t = Math.min(T, animation_time) / 1000;
 
             this.position.x = start.x + v.x * t;
             this.position.y = start.y + v.y * t;
             
-            if (T < this.animation_time) {
-                this.animation_frame_request = requestAnimationFrame(animation_handle);
+            if (T < animation_time) {
+                state.draw_request = requestAnimationFrame(animation_handle);
             } else {
                 this.position.x = start.x + D.x;
                 this.position.y = start.y + D.y;
@@ -76,7 +84,7 @@ function SynopsisScroll(element) {
 
         }
 
-        this.animation_frame_request = requestAnimationFrame(animation_handle);
+        state.draw_request = requestAnimationFrame(animation_handle);
 
     };
 
@@ -97,7 +105,7 @@ function SynopsisScroll(element) {
         const dx = shift ? e.deltaY : 0;
         const dy = !shift ? e.deltaY : 0;
 
-        this.set_target(this.target.x + dx, this.target.y + dy);
+        this.set_target(state.target.x + dx, state.target.y + dy);
         
     });
 
