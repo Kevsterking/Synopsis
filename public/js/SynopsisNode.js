@@ -1,96 +1,107 @@
-// --------------------------------------------------------------------
-
-// Node
-
-// --------------------------------------------------------------------
-
 function SynopsisNode() {
-
-  const resize_observer = new ResizeObserver((entries) => {
-    for (const entry of entries) {
-      entry.target.onresize ? entry.target.onresize(entry) : 0;
-    }
-  });
-
-  const relative_extent = { x: { min: null, max: null }, y: { min: null, max: null } };
-
-  const domstr = (
-    `
-      <div class='synopsis-node' style='user-select: none;white-space: nowrap; position: absolute;cursor: pointer;'>
-      </div>
-    `
-  );
-
-  this.loaded = false;
-
-  this.x = 0;
-  this.y = 0;
-
-  this.get_extent = () => {
-    return { x: { min: this.x + relative_extent.x.min, max: this.x + relative_extent.x.max }, y: { min: this.y + relative_extent.y.min, max: this.y + relative_extent.y.max }};
-  }
 
   this.on_load   = new SynopsisEvent();
   this.on_resize = new SynopsisEvent(); 
   this.on_move   = new SynopsisEvent();  
   this.on_delete = new SynopsisEvent();
 
-  this.on_load.subscribe((element) => {
-    // Element has loaded
-    debug("[Node] - node load");
-    this.element = element;
-    resize_observer.observe(this.element);
-    this.element.onresize = this.on_resize.trigger; 
-    this.loaded = true;
-    this.on_resize.trigger();
-    this.on_move.trigger();
-  });
+  this.position = new SynopsisCoordinate();
+  this.extent   = new SynopsisExtent();
 
-  this.on_resize.subscribe(() => {
-    // Recalculate relative extent, box center positioning
-    debug("[Node] - node resize");
-    relative_extent.x.min = -this.element.offsetWidth * 0.5;
-    relative_extent.y.min = -this.element.offsetHeight * 0.5;
-    relative_extent.x.max = -relative_extent.x.min;
-    relative_extent.y.max = -relative_extent.y.min;
-    this.on_move.trigger();
-  });
+  console.log(this.position);
 
-  this.on_move.subscribe(() => {
-    // Set style according to this.x, this.y positon
-    debug("[Node] - node move");
-    this.element.style.left = (this.x + relative_extent.x.min) + "px"; 
-    this.element.style.top = (this.y + relative_extent.y.min) + "px";
-  });
+  this.content = "";
 
-  this.spawn = (parent_generator, x, y) => {
-    place_in_dom(domstr, parent_generator, (el) => {
-      this.on_load.trigger(el);
-      this.set_pos(x, y);
-    });
+  // --------------------------------------------------------------------
+
+  const relative_extent = new SynopsisExtent();
+
+  // --------------------------------------------------------------------
+
+  const set_position = (x, y) => {
+    this.position.x = x;
+    this.position.y = y;
   }
 
-  this.delete = () => {
-    resize_observer.disconnect();
+  const _delete = () => {
+    synopsis_resize_observer.stop_observing(this.element);
     this.on_delete.trigger();
     this.element.remove();
   }
 
+  const update_relative_extent = () => {
+    relative_extent.x.min = -this.element.offsetWidth * 0.5;
+    relative_extent.y.min = -this.element.offsetHeight * 0.5;
+    relative_extent.x.max = -relative_extent.x.min;
+    relative_extent.y.max = -relative_extent.y.min;
+  }
+
+  const update_extent = () => {
+    this.extent.x.min = this.position.x + relative_extent.x.min;
+    this.extent.x.max = this.position.x + relative_extent.x.max;
+    this.extent.y.min = this.position.y + relative_extent.y.min;
+    this.extent.y.max = this.position.y + relative_extent.y.max;
+  }
+
+  const update_position = () => {
+    this.element.style.left = (this.position.x + relative_extent.x.min) + "px"; 
+    this.element.style.top = (this.position.y + relative_extent.y.min) + "px";
+  }
+
+  const load = element => {
+    
+    this.element = element;
+  
+    synopsis_resize_observer.observe(this.element, this.on_resize.trigger);
+  
+    update_relative_extent();
+    update_position();
+    update_extent();
+
+  }
+
+  // --------------------------------------------------------------------
+
+  this.on_load.subscribe(load);
+
+  this.on_resize.subscribe(() => {
+    update_relative_extent();
+    update_position();
+    update_extent();
+  });
+  
+  this.on_move.subscribe(() => {
+    update_position();
+    update_extent();
+  });
+
+  // --------------------------------------------------------------------
+
+  this.delete = _delete;
+
   this.set_pos = (x, y) => {
-    this.x = x;
-    this.y = y;
+    set_position(x, y);
     this.on_move.trigger();
   }
 
   this.highlight = () => {
-    //this.element.style.border = "1px solid rgba(255, 0, 0, 1)";
-    //console.log(this.element, this.element.firstElementChild);
     this.element.firstElementChild.style.filter = "drop-shadow(1px 1px 0 red) drop-shadow(-1px -1px 0 red)";
   }
 
   this.dehighlight = () => {
-    //this.element.style.border = "none";
     this.element.firstElementChild.style.filter = "none";
+  }
+
+  this.spawn = parent_generator => {
+    place_in_dom(
+      `
+        <div class='synopsis-node' style='user-select: none;white-space: nowrap; position: absolute;cursor: pointer;'>
+        ` + this.content + `
+        </div>
+      `,
+      parent_generator, 
+      this.on_load.trigger
+    );
   }
 
 

@@ -3,23 +3,19 @@ get_json("nodetest.json", (dat) => {testdata = dat;})
 
 function SynopsisCoordinateSystem(content) {
 
-  this.loaded = false;
-
   this.on_load            = new SynopsisEvent();
   this.on_resize          = new SynopsisEvent(); 
   this.on_translate       = new SynopsisEvent();
   this.on_focus_document  = new SynopsisEvent();
 
   this.content    = content;
-  this.background = new SynopsisGrid(this);   
+  this.background = new SynopsisGrid();   
 
   this.selected = new Set();
   this.nodes    = new Set();
 
-  this.translation = { x: 0, y: 0 };
-
-  this.document = {};
-  this.focused_document = this.document;
+  this.extent      = new SynopsisExtent();
+  this.translation = new SynopsisCoordinate();
 
   // ---------------------------------------------------------------------------
 
@@ -30,14 +26,13 @@ function SynopsisCoordinateSystem(content) {
 
   // ---------------------------------------------------------------------------
 
-  const resize_observer = new ResizeObserver((entries) => {
-    for (const entry of entries) {
-      entry.target.onresize ? entry.target.onresize(entry) : 0;
-    }
-  });
+  const get_event_relative_pos = e => {
+    const rect = this.scroller.getBoundingClientRect();
+    return { x: e.x + this.scr.position.x - rect.left, y: e.y + this.scr.position.y - rect.top};
+  } 
 
-  const get_diagram_cord = e => {
-    const rel_cord = this.get_relative_mouse_pos(e);
+  const get_event_coord = e => {
+    const rel_cord = get_event_relative_pos(e);
     return { x: this.content.extent.x.min - (this.scroller.clientWidth - 100) + rel_cord.x, y: this.content.extent.y.min - (this.scroller.clientHeight - 100) + rel_cord.y };
   }
 
@@ -94,9 +89,7 @@ function SynopsisCoordinateSystem(content) {
     this.selected.clear();
   }
   
-  const node_load = (node, prop) => {
-    
-    debug("[Diagram] - node load");
+  const node_load = node => {
     
     return element => {
       
@@ -118,7 +111,7 @@ function SynopsisCoordinateSystem(content) {
         }
 
         if (Date.now() - last_mousedown_time < 500 && !cancel_dbkclick) {
-          this.load_content(prop);
+          //this.load_content(prop);
           return;
         }
 
@@ -129,11 +122,11 @@ function SynopsisCoordinateSystem(content) {
           const placey = place_cord.y - this.scroller.clientHeight + 100 + this.content.extent.y.min;
           
           selection_move_start = {};
-          selection_move_start.toffs = { x: node.x - placex, y: node.y - placey };
+          selection_move_start.toffs = { x: node.position.x - placex, y: node.position.y - placey };
           selection_move_start.pmap = new Map();
 
           this.selected.forEach(k => {
-            selection_move_start.pmap.set(k, { ox: k.x - placex, oy: k.y - placey });
+            selection_move_start.pmap.set(k, { ox: k.position.x - placex, oy: k.position.y - placey });
           });
 
         }
@@ -143,8 +136,6 @@ function SynopsisCoordinateSystem(content) {
 
       });
 
-      place_in_dom(prop.html, element, null);
-  
     }
   } 
   
@@ -152,10 +143,10 @@ function SynopsisCoordinateSystem(content) {
 
     if (selection_move_start) {
 
-      const place_cord = get_diagram_cord(e);
+      const place_cord = get_event_coord(e);
       let placex = place_cord.x;
       let placey = place_cord.y;
-      
+
       const toffs = selection_move_start.toffs;
 
       if (ctr_down) {
@@ -171,33 +162,33 @@ function SynopsisCoordinateSystem(content) {
   
   }
 
-  const place_node = (node, prop) => {
-  
-    node.on_load.subscribe(node_load(node, prop));
+  const spawn_node = node => {
+
+    node.on_load.subscribe(node_load(node));
     
     this.nodes.add(node);
-    
+
     node.on_delete.subscribe(() => {
       this.nodes.delete(node);
     });
 
-    this.content.place(node, prop.x, prop.y);
+    this.content.spawn_node(node);
 
   }
 
-  const place_procedure = (e) => {
+  const create_node = e => {
   
     e.preventDefault();
     
-    const place_cord = get_diagram_cord(e);
-    const prop = {};
     const new_node = new SynopsisNode();
+    const place_cord = get_event_coord(e);
 
-    prop.x = place_cord.x;
-    prop.y = place_cord.y;
-    prop.html = "<div style=\"color: white; background-color: gray;padding: 15px\">Node</div>";
-  
-    place_node(new_node, prop);
+    new_node.position.x = place_cord.x;
+    new_node.position.y = place_cord.y;
+    
+    new_node.content = "<div style=\"color: white; background-color: gray;padding: 15px\">Node</div>";
+
+    spawn_node(new_node);
 
   }
 
@@ -209,8 +200,7 @@ function SynopsisCoordinateSystem(content) {
   
   this.on_load.subscribe(element => {
     
-    resize_observer.observe(element);
-    element.onresize = this.on_resize.trigger;
+    synopsis_resize_observer.observe(element, this.on_resize.trigger);
 
     const key_listen_down = (e) => {
       if (e.key == "Delete") delete_selected();
@@ -290,14 +280,16 @@ function SynopsisCoordinateSystem(content) {
     this.static_background  = this.element.querySelector('*.diagram-static-background');
 
     this.scr = new SynopsisScroll(this.scroller);
-    this.content.spawn(this.container);
     
+    this.content.spawn(this.container);
+    this.background.spawn(this.static_background);
+
     this.content.on_extent_change.subscribe(extent_change);
 
     this.container.oncontextmenu  = (e) => {
       e.preventDefault();
       if (!is_node(e.target)) {
-        place_procedure(e);
+        create_node(e);
       }
     }
         
@@ -306,8 +298,6 @@ function SynopsisCoordinateSystem(content) {
       drag_update(last_move_event);
     });
 
-    this.loaded = true;
-
     this.update();
     this.set_translation(0, 0);
     
@@ -315,10 +305,7 @@ function SynopsisCoordinateSystem(content) {
 
   // ---------------------------------------------------------------------------
 
-  this.get_relative_mouse_pos = (e) => {
-    const rect = this.scroller.getBoundingClientRect();
-    return { x: e.x + this.scr.position.x - rect.left, y: e.y + this.scr.position.y - rect.top};
-  } 
+  this.get_relative_mouse_pos = get_event_relative_pos;
 
   this.load_content = (json) => {
     
@@ -375,13 +362,15 @@ function SynopsisCoordinateSystem(content) {
     this.translation.x = paddingx - this.content.extent.x.min - cx - this.scr.position.x;
     this.translation.y = paddingy - this.content.extent.y.min - cy - this.scr.position.y; 
 
-    this.on_translate.trigger({ x: this.translation.x, y: this.translation.y });
-  
+    this.background.set_translation(this.translation.x, this.translation.y);
+
+    
   }
 
   this.set_translation = (x, y) => {
     this.translation.x = x;
     this.translation.y = y;
+    this.background.set_translation(this.translation.x, this.translation.y);
     this.update_scroll_pos();
   }
   

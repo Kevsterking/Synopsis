@@ -1,37 +1,29 @@
-// --------------------------------------------------------------------
+function SynopsisGrid() {
 
-// Grid
+  this.on_load      = new SynopsisEvent();
+  this.on_resize    = new SynopsisEvent();
 
-// --------------------------------------------------------------------
+  this.translation  = new SynopsisCoordinate();
+  this.origin       = new SynopsisCoordinate();
 
-function SynopsisGrid(diagram) {
+  // ---------------------------------------------------------------------------
 
-  this.loaded = false;
-
-  this.translation  = { x: 0, y: 0 };
-  this.origin       = { x: 0, y: 0 };
-
-  this.on_load = new SynopsisEvent();
-
-  this.update_origin = () => {
+  const update_origin = () => {
     this.origin.x = this.context.canvas.width * 0.5 + this.translation.x;
     this.origin.y = this.context.canvas.height * 0.5 + this.translation.y;
-    this.update();
   }
 
   const update_dimensions = () => {
     this.context.canvas.width = this.element.offsetWidth;
     this.context.canvas.height = this.element.offsetHeight;
-    this.update_origin();
   }
 
-  this.setTranslation = (x, y) => {
+  const set_translation = (x, y) => {
     this.translation.x = x;
     this.translation.y = y;
-    this.update_origin();
   }
 
-  this.update = () => {
+  const update = () => {
 
     // Clear the canvas before drawing new gridlines
     this.context.clearRect(0, 0, this.element.offsetWidth, this.element.offsetHeight);
@@ -79,38 +71,48 @@ function SynopsisGrid(diagram) {
     
     this.context.translate(-0.5, -0.5);
     
-  };
+  }
+
+  // ---------------------------------------------------------------------------
 
   this.on_load.subscribe((element) => {
 
     this.element = element;
-
     this.context = this.element.getContext("2d");
+
+    synopsis_resize_observer.observe(this.element, this.on_resize.trigger);
+            
     update_dimensions();
-
-    this.loaded = true;
-
-    this.setTranslation(0, 0);
-    this.update();
+    set_translation(0, 0);
 
   });
 
-  diagram.on_resize.subscribe(update_dimensions);
-
-  diagram.on_translate.subscribe(translation => {
-    this.setTranslation(translation.x, translation.y);
-    this.update();
+  this.on_resize.subscribe(() => {
+    update_dimensions();
+    update_origin();
+    update();
   });
 
-  diagram.on_load.subscribe((diagram_element) => {
+  // ---------------------------------------------------------------------------
+
+  this.update = update;
+  
+  this.set_translation = (x, y) => {
+    set_translation(x, y);
+    update_origin();
+    update();
+  }
+
+  this.spawn = parent_generator => {
+
     place_in_dom(
       `
         <canvas class="diagram-canvas" style='z-index: 1; position: absolute; left:0;top:0; width: 100%; height: 100%;'>
         </canvas>
       `,
-      diagram_element.querySelector('*.diagram-static-background'),
+      parent_generator,
       this.on_load.trigger
     );
-  });
+  }
 
 }
