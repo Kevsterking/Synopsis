@@ -4,11 +4,13 @@ function SynopsisNode() {
   this.on_resize = new SynopsisEvent(); 
   this.on_move   = new SynopsisEvent();  
   this.on_delete = new SynopsisEvent();
+  this.on_double_click = new SynopsisEvent();
 
   this.position = new SynopsisCoordinate();
   this.extent   = new SynopsisExtent();
 
-  this.content = "";
+  this.html = "";
+  this.content = {};
 
   // --------------------------------------------------------------------
 
@@ -56,6 +58,29 @@ function SynopsisNode() {
     update_position();
     update_extent();
 
+    let last_mousedown_time = Date.now();
+    let cancel_dbkclick = false;
+
+    element.addEventListener("mousemove", () => {
+      cancel_dbkclick = true;
+    });
+
+    element.addEventListener("mousedown", e => {
+
+      if (e.button != 0) {
+        return;
+      }
+
+      if (Date.now() - last_mousedown_time < 500 && !cancel_dbkclick) {
+        this.on_double_click.trigger(e);      
+        return;
+      }
+
+      last_mousedown_time = Date.now();
+      cancel_dbkclick = false;
+
+    });
+
   }
 
   // --------------------------------------------------------------------
@@ -94,7 +119,7 @@ function SynopsisNode() {
     place_in_dom(
       `
         <div class='synopsis-node' style='user-select: none;white-space: nowrap; position: absolute;cursor: pointer;'>
-        ` + this.content + `
+        ` + this.html + `
         </div>
       `,
       parent_generator, 

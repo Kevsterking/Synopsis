@@ -1,12 +1,16 @@
+let testdata = null;
+get_json("nodetest.json", dat => {testdata = dat;})
+
 function SynopsisDocument() {
 
-    this.on_load = new SynopsisEvent();
-
+    this.on_load            = new SynopsisEvent();
+    this.on_focus_document  = new SynopsisEvent();
+  
     this.text_editor    = new SynopsisMonacoEditor();
     this.node_container = new SynopsisNodeContainer();
-    this.content        = new SynopsisCoordinateSystem(this.node_container);
+    this.diagram        = new SynopsisCoordinateSystem(this.node_container);
 
-    this.document = {};
+    this.document         = {};
     this.focused_document = this.document;
   
     // ---------------------------------------------------------------------------
@@ -15,12 +19,47 @@ function SynopsisDocument() {
 
     // ---------------------------------------------------------------------------
 
+    const load_content = json => {
+
+        this.diagram.clear();
+        
+        this.document = json;
+        this.focused_document = this.document; 
+
+        if (json.content) {
+            for (const node of json.content) {
+
+                const new_node = new SynopsisNode();
+
+                new_node.position.x = node.x;
+                new_node.position.y = node.y;
+
+                new_node.html = node.html;
+
+                new_node.document = node;
+
+                new_node.on_double_click.subscribe(() => {
+                    load_content(new_node.document);
+                });
+
+                this.diagram.spawn_node(new_node);
+
+            }
+        }
+    
+        this.on_focus_document.trigger(json);
+        this.diagram.set_translation(0, 0);
+    
+    }
+
+    // ---------------------------------------------------------------------------
+
     this.on_load.subscribe(element => {
     
         const editor    = element.querySelector("div.synopsis-document-editor");
         const content   = element.querySelector("div.synopsis-document-content");
 
-        this.content.spawn(content);
+        this.diagram.spawn(content);
         this.text_editor.spawn(editor);
         
         element.addEventListener("mouseup", e => {
@@ -65,6 +104,8 @@ function SynopsisDocument() {
     });
 
     // ---------------------------------------------------------------------------
+
+    this.load_content = load_content;
 
     this.spawn = parent_generator => {
         place_in_dom(

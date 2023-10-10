@@ -30,12 +30,12 @@ function SynopsisResizeObserver() {
     // --------------------------------------------------------------------
 
     this.observe = (element, action) => {
-        observed.set(element, {width: element.clientWidth, height: element.clientHeight, action: action });
+        observed.set(element, { width: element.clientWidth, height: element.clientHeight, action: action });
         observer.observe(element);
     }
 
     this.stop_observing = element => {
-        observer.unobserve(target)
+        observer.unobserve(element)
         observed.delete(element);
     }
 

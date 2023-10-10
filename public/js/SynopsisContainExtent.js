@@ -17,10 +17,10 @@ function SynopsisContainExtent() {
     // ---------------------------------------------------------------------------
 
     const update_extent = () => {
-        this.x.min = xmin.max().x.min;
-        this.x.max = xmax.max().x.max;
-        this.y.min = ymin.max().y.min;
-        this.y.max = ymax.max().y.max;
+        this.x.min = xmin.max()?.x.min | 0;
+        this.x.max = xmax.max()?.x.max | 0;
+        this.y.min = ymin.max()?.y.min | 0;
+        this.y.max = ymax.max()?.y.max | 0;
     }
 
     const insert_subextent = extent => {

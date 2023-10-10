@@ -1,22 +1,15 @@
-let testdata = null;
-get_json("nodetest.json", dat => {testdata = dat;})
-
 function SynopsisCoordinateSystem(content) {
 
   this.on_load            = new SynopsisEvent();
   this.on_resize          = new SynopsisEvent(); 
   this.on_translate       = new SynopsisEvent();
-  this.on_focus_document  = new SynopsisEvent();
-
-  this.scroller = new SynopsisScroller();
-
+  
   this.content    = content;
   this.background = new SynopsisGrid();   
+  this.scroller = new SynopsisScroller();
 
   this.selected = new Set();
   this.nodes    = new Set();
-
-  this.content_container = null;
 
   this.padding          = new SynopsisCoordinate(); 
   this.translation      = new SynopsisCoordinate();
@@ -65,7 +58,7 @@ function SynopsisCoordinateSystem(content) {
   }
 
   const is_node = target => {
-    return any_of_parents_satisfies(target, (parent) => {
+    return any_of_parents_satisfies(target, parent => {
       try {
         return parent.classList.contains("synopsis-node");
       } catch(err) {
@@ -150,13 +143,6 @@ function SynopsisCoordinateSystem(content) {
   const node_load = node => {
     
     return element => {
-      
-      let last_mousedown_time = Date.now();
-      let cancel_dbkclick = false;
-
-      element.addEventListener("mousemove", () => {
-        cancel_dbkclick = true;
-      });
 
       element.addEventListener("mousedown", e => {
 
@@ -168,17 +154,9 @@ function SynopsisCoordinateSystem(content) {
           return;
         }
 
-        if (Date.now() - last_mousedown_time < 500 && !cancel_dbkclick) {
-          //this.load_content(prop);
-          return;
-        }
-
         if (this.selected.has(node)) {
           start_move(node, e);
         }
-
-        last_mousedown_time = Date.now();
-        cancel_dbkclick = false;
 
       });
 
@@ -209,7 +187,7 @@ function SynopsisCoordinateSystem(content) {
     new_node.position.x = place_cord.x;
     new_node.position.y = place_cord.y;
     
-    new_node.content = "<div style=\"color: white; background-color: gray;padding: 15px\">Node</div>";
+    new_node.html = "<div style=\"color: white; background-color: gray;padding: 15px\">Node</div>";
 
     spawn_node(new_node);
 
@@ -272,16 +250,6 @@ function SynopsisCoordinateSystem(content) {
 
     synopsis_resize_observer.observe(element, this.on_resize.trigger);
 
-    element.addEventListener("wheel", (e) => {
-
-      if (ctrl_pressed) {
-        e.preventDefault();
-        if (e.deltaY < 0) this.content.scale_by(1.1);
-        else this.content.scale_by(1 / 1.1);
-      }
-      
-    });
-
     element.addEventListener("mousedown", (e) => {
 
       if (!is_node(e.target) && !ctrl_pressed) {
@@ -340,32 +308,9 @@ function SynopsisCoordinateSystem(content) {
   // ---------------------------------------------------------------------------
 
   this.get_relative_mouse_pos = get_event_relative_pos;
+  this.clear = clear_diagram;
 
-  this.load_content = json => {
-    
-    clear_diagram();
-    
-    this.document = json;
-    this.focused_document = this.document; 
-
-    if (json.nodes) {
-      for (const node of json.nodes) {
-
-        const new_node = new SynopsisNode();
-
-        console.log(node);
-
-
-        //place_node(new SynopsisNode(), node);
-
-      }
-    }
-
-    this.on_focus_document.trigger(json);
-
-    this.set_translation(0, 0);
-
-  }
+  this.spawn_node = spawn_node;
 
   this.set_translation = (x, y) => {
     this.scroller.set_position_no_event(x, y);
@@ -373,8 +318,6 @@ function SynopsisCoordinateSystem(content) {
   }
   
   this.spawn = parent_generator => {
-
-
     place_in_dom(
       `
         <div class="synopsis-coordinate-system" style="position:relative;width:100%;height:100%;">
@@ -389,7 +332,6 @@ function SynopsisCoordinateSystem(content) {
       parent_generator, 
       this.on_load.trigger
     );
-
   };
 
 }

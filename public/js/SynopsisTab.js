@@ -14,6 +14,8 @@ function SynopsisTab(name, content_box) {
 
     this.content = new SynopsisDocument();
 
+    documents.push(this.content);
+
     // ---------------------------------------------------------------------------
 
     const tab_load = element => {
