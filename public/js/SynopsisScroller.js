@@ -129,12 +129,10 @@ function SynopsisScroller() {
         element.addEventListener("wheel", e => {
         
             e.preventDefault();
-            
-            const d = (e.deltaY > 0 ? 1 : -1) * 100;
     
-            const dx = shift_pressed ? d : 0;
-            const dy = !shift_pressed ? d : 0;
-            
+            const dx = e.deltaX;
+            const dy = e.deltaY;
+
             this.scroll_to(state.target.x + dx, state.target.y + dy);
             
         });

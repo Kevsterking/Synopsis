@@ -1,0 +1,88 @@
+<html>
+    
+    <head>
+        <link rel="icon" href="https://en.hackndo.com/assets/uploads/2019/07/graphe_before.png" />
+    </head>
+
+    <style>
+        
+        * {
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+        }
+
+        div.win-button {
+            position: relative;
+            color: white;
+            height: 100%;
+            width: 45px;
+            user-select: none;
+        }        
+
+        div.win-button:hover {
+            backdrop-filter: brightness(120%);
+        }
+
+        div#x-button:hover {
+            backdrop-filter: none;
+            background-color: rgb(232, 17, 35);            
+        }
+
+        div.win-button > p {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            font-size: 20px;
+            transform: translate(-50%, -50%);
+        }   
+
+    </style>
+    
+    <body style="width:100vw;height:30px;background-color: rgb(60, 60, 60);overflow: hidden;">
+    
+        <div style="width:100%;height:100%;display: flex;">
+            <div>
+                <img style="height: 100%;" src="https://en.hackndo.com/assets/uploads/2019/07/graphe_before.png" />
+            </div>
+            <div style="flex-grow: 1;">
+
+            </div>
+            <div style="display: flex;height: 100%;">
+                <div id="minimize-button" class="win-button">
+                    <p>
+                        &ndash;
+                    </p>
+                </div>
+                <div id="toggle-maximize-button" class="win-button">
+                    <p>
+                        &#9633;
+                    </p>
+                </div>
+                <div id="x-button" class="win-button">
+                    <p>
+                        ×
+                    </p>
+                </div>
+            </div>
+        </div>
+    
+    </body>
+
+    <script>
+        
+        document.querySelector("div#x-button").addEventListener("click", () => {
+            window.electronAPI.close_window();
+        });
+
+        document.querySelector("div#minimize-button").addEventListener("click", () => {
+            window.electronAPI.minimize_window();
+        });
+
+        document.querySelector("div#toggle-maximize-button").addEventListener("click", () => {
+            window.electronAPI.toggle_maximize_window();
+        });
+
+    </script>
+
+</html>

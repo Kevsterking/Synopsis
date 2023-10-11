@@ -29,13 +29,13 @@ function SynopsisTab(name, content_box) {
         element.addEventListener("click", this.on_click.trigger);
 
         element.addEventListener("mouseenter", () => {
-            if (!this.highlighted) {
+            if (!this.showing) {
                 x_dom.style.visibility = "visible";
             }
         });
 
         element.addEventListener("mouseleave", () => {
-            if (!this.highlighted) {
+            if (!this.showing) {
                 x_dom.style.visibility = "hidden";
             }
         });
@@ -94,10 +94,10 @@ function SynopsisTab(name, content_box) {
 
     this.spawn = parent_generator => {
         place_in_dom(
-            `<div class="synopsis-tab" style='user-select: none;background-color: #1e1e1e;display: flex;align-items:center;gap: 10px;padding: 8px 10px;'>
+            `<div class="synopsis-tab" style='user-select: none;background-color: #1e1e1e;display: flex;align-items:center;gap: 10px;padding: 4px 10px;'>
                 <div style="border-radius:50%;background-color:red;width:5px;height:5px;"></div>
                 <p>`+this.name+`</p>
-                <p class="x-box" style="font-size: 12px;color:rgba(255, 255, 255, 0.4);visibility: hidden;padding: 3px;">X</p>
+                <p class="x-box" style="font-size: 20px;color:rgba(255, 255, 255, 0.4);visibility: hidden;padding: 3px;">×</p>
             </div>`,
             parent_generator,
             tab_load

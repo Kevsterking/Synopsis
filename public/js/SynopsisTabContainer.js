@@ -80,7 +80,7 @@ function SynopsisTabContainer() {
                         <div class="synopsis-tab-container-tabs-container" style="display: flex;gap:1px;">
                         </div>
                         <div class="synopsis-tab-container-add-tab" style="color:rgba(255, 255, 255, 0.4);font-size:16px;padding: 8px 10px;background-color:#1e1e1e;">
-                            <p>+</p>
+                            <p>&#65291;</p>
                         </div>
                     </div>
     
