@@ -7,7 +7,8 @@ function SynopsisDocumentInterface() {
     this.diagram        = new SynopsisCoordinateSystem(this.node_container);
 
     this.document       = new SynopsisDocument();
-    
+    this.active_scope   = null;
+
     // ---------------------------------------------------------------------------
 
     let dragging_editor = false;
@@ -15,7 +16,7 @@ function SynopsisDocumentInterface() {
     // ---------------------------------------------------------------------------
 
     const save_document = () => {
-        console.log("save", this.document);
+        this.document.get_save_string();
     }
 
     const content_key_listen = e => {
@@ -25,32 +26,11 @@ function SynopsisDocumentInterface() {
         }
     }
 
-    const create_node_from_obj = obj => {
-        
-        const new_node = new SynopsisNode();
-
-        new_node.position.x = obj.x;
-        new_node.position.y = obj.y;
-
-        new_node.html = obj.html;
-
-        new_node.on_double_click.subscribe(() => {
-            //load_content(new_node.document);
-        });
-
-        return new_node;
-
-    }
-
     const load_scope = scope => {
 
         this.diagram.clear();
 
         scope.nodes.forEach((subscope, node) => {
-
-            node.on_double_click.subscribe(() => {
-                load_scope(subscope);
-            });
 
             this.diagram.spawn_node(node);
             
@@ -61,7 +41,8 @@ function SynopsisDocumentInterface() {
     }
 
     const load_document = document => {
-        load_scope(document.root_scope);
+        this.active_scope = document.root_scope;
+        load_scope(this.active_scope);
     }
 
     // ---------------------------------------------------------------------------
@@ -130,8 +111,17 @@ function SynopsisDocumentInterface() {
     });
 
     this.node_container.on_add_node.subscribe(node => {
-        if (!this.document.nodes) this.document.nodes = [];
-        this.document.nodes.push(node.document || {});
+        
+        node.on_double_click.subscribe(() => {
+            load_scope(this.active_scope.get_scope(node));
+        });
+
+        node.on_delete.subscribe(() => {
+            this.active_scope.delete_node(node);
+        });
+        
+        this.active_scope.add_node(node);
+
     });
 
     // ---------------------------------------------------------------------------

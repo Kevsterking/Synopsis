@@ -28,4 +28,8 @@ function SynopsisDocument() {
 
     this.load = load_from_file;
 
+    this.get_save_string = () => {
+        console.log(data);
+    }
+
 }
