@@ -12,7 +12,7 @@ function SynopsisTab(name, content_box) {
     
     this.showing = false;
 
-    this.content = new SynopsisDocument();
+    this.content = new SynopsisDocumentInterface();
 
     documents.push(this.content);
 

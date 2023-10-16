@@ -3,7 +3,7 @@ const path = require('path')
 
 function createWindow() {
     
-    const menu_bar_height = 30;
+    const menu_bar_height = 35;
 
     const win = new BrowserWindow({
         width: 600,
@@ -36,9 +36,6 @@ function createWindow() {
     }
 
     const toggle_maximize_window = () => {
-
-        console.log(win.isMaximized());
-
         if (win.isMaximized()) win.unmaximize();
         else win.maximize();
     }

@@ -3,6 +3,7 @@ function SynopsisNodeContainer() {
   this.extent = new SynopsisContainExtent();  
 
   this.on_load          = new SynopsisEvent();
+  this.on_add_node      = new SynopsisEvent();
   this.on_extent_change = this.extent.on_change;
 
   // ---------------------------------------------------------------------------
@@ -52,6 +53,8 @@ function SynopsisNodeContainer() {
     });
 
     node.spawn(this.translator);
+
+    this.on_add_node.trigger(node);
 
   }
 

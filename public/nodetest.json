@@ -1,21 +1,24 @@
 {
     "name": "test node",
-    "content": [
+    "x": 0,
+    "y": 0,
+    "html": "<div style=\"color: white; background-color: gray;padding: 15px\">Hello World!</div>",
+    "nodes": [
         {
             "name": "Hello world box",
-            "x": 100, 
+            "x": 100,
             "y": 100,
             "html": "<div style=\"color: white; background-color: gray;padding: 15px\">Hello World!</div>",
-            "content": [
+            "nodes": [
                 {
                     "name": "Hello world box",
-                    "x": -100, 
+                    "x": -100,
                     "y": -100,
                     "html": "<div style=\"color: white; background-color: gray;padding: 15px\">Hello World!</div>"
                 },
                 {
                     "name": "Troll face box",
-                    "x": -400, 
+                    "x": -400,
                     "y": -400,
                     "html": "<img src=\"https://upload.wikimedia.org/wikipedia/en/thumb/9/9a/Trollface_non-free.png/220px-Trollface_non-free.png\" width=\"200\"/>"
                 }
@@ -23,7 +26,7 @@
         },
         {
             "name": "Troll face box",
-            "x": 400, 
+            "x": 400,
             "y": 400,
             "html": "<img src=\"https://upload.wikimedia.org/wikipedia/en/thumb/9/9a/Trollface_non-free.png/220px-Trollface_non-free.png\" width=\"200\"/>"
         }
