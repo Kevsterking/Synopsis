@@ -46,16 +46,22 @@ function SynopsisDocumentInterface() {
 
         this.diagram.clear();
 
-        for (const node_obj of scope.nodes) {
-            this.diagram.spawn_node(create_node_from_obj(node_obj));
-        }
+        scope.nodes.forEach((subscope, node) => {
+
+            node.on_double_click.subscribe(() => {
+                load_scope(subscope);
+            });
+
+            this.diagram.spawn_node(node);
+            
+        });
 
         this.diagram.set_translation(0, 0);
     
     }
 
     const load_document = document => {
-        load_scope(document.get_root_scope());
+        load_scope(document.root_scope);
     }
 
     // ---------------------------------------------------------------------------

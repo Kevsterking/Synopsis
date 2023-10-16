@@ -10,7 +10,6 @@ function SynopsisNode() {
   this.extent   = new SynopsisExtent();
 
   this.html = "";
-  this.content = {};
 
   // --------------------------------------------------------------------
 
