@@ -4,7 +4,9 @@ function SynopsisScope(obj, parent_scope=null) {
     this.obj = obj; 
 
     this.parent_scope = parent_scope;
-    
+
+    this.node_container = new SynopsisNodeContainer();
+
     this.nodes = new Map();
     this.edges = null;
 
@@ -31,6 +33,8 @@ function SynopsisScope(obj, parent_scope=null) {
                 });
 
                 this.nodes.set(new_node, new_scope);
+
+                this.node_container.add_node(new_node);
 
             }
         }
@@ -91,6 +95,7 @@ function SynopsisScope(obj, parent_scope=null) {
 
     // ---------------------------------------------------------------------------
 
+    this.node_container.spawn(null);
     load_from_obj(obj);
 
 }

@@ -8,6 +8,30 @@ function SynopsisNodeContainer() {
 
   // ---------------------------------------------------------------------------
 
+  const add_node = node => {
+
+    node.on_load.subscribe(() => {
+      this.extent.insert_subextent(node.extent);
+    });
+
+    node.on_resize.subscribe(() => {
+      this.extent.update_subextent(node.extent);
+    });
+
+    node.on_move.subscribe(() => {
+      this.extent.update_subextent(node.extent);
+    });
+
+    node.on_delete.subscribe(() => {
+      this.extent.remove_subextent(node.extent);
+    });
+
+    node.spawn(this.translator);
+
+    this.on_add_node.trigger(node);
+
+  }
+
   const update_size = () => {
     this.element.style.width  = (this.extent.x.max - this.extent.x.min) + "px";
     this.element.style.height = (this.extent.y.max - this.extent.y.min) + "px";
@@ -34,34 +58,12 @@ function SynopsisNodeContainer() {
 
   // ---------------------------------------------------------------------------
 
-  this.spawn_node = node => {
-      
-    node.on_load.subscribe(() => {
-      this.extent.insert_subextent(node.extent);
-    });
-
-    node.on_resize.subscribe(() => {
-      this.extent.update_subextent(node.extent);
-    });
-
-    node.on_move.subscribe(() => {
-      this.extent.update_subextent(node.extent);
-    });
-
-    node.on_delete.subscribe(() => {
-      this.extent.remove_subextent(node.extent);
-    });
-
-    node.spawn(this.translator);
-
-    this.on_add_node.trigger(node);
-
-  }
+  this.add_node = add_node;
 
   this.spawn = parent_generator => {
     place_in_dom(
       `
-        <div class="diagram-nodes" style="box-sizing: content-box;position:relative;">
+        <div class="diagram-nodes" style="box-sizing: content-box;position:relative;border: 1px solid white;">
           <div class="diagram-nodes-translator" style="position:absolute;width: 0;">
           </div>
         </div>

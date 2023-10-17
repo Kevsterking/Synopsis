@@ -1,5 +1,10 @@
 const synopsis_resize_observer = new SynopsisResizeObserver();
 
+function move_to_void_dom(element) {
+  const template = document.createElement('template');
+  template.appendChild(element);
+}
+
 function place_in_dom(element_string, get_parent_dom, callback) {
 
   function getHtmlNode(html_string) {
@@ -12,7 +17,7 @@ function place_in_dom(element_string, get_parent_dom, callback) {
   const place_procedure = () => {
     const parent_dom = (typeof get_parent_dom == 'function' ? get_parent_dom() : get_parent_dom); 
     const created_node = getHtmlNode(element_string);
-    parent_dom.appendChild(created_node);
+    parent_dom ? parent_dom.appendChild(created_node) : 0;
     callback ? callback(created_node) : 0;
   }; 
 

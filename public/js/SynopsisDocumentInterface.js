@@ -3,22 +3,17 @@ function SynopsisDocumentInterface() {
     this.on_load        = new SynopsisEvent();
   
     this.text_editor    = new SynopsisMonacoEditor();
-    this.node_container = new SynopsisNodeContainer();
-    this.diagram        = new SynopsisCoordinateSystem(this.node_container);
+    this.diagram        = new SynopsisCoordinateSystem();
     this.nav            = new SynopsisNav();
 
-    this.document       = new SynopsisDocument();
     this.active_scope   = null;
+    this.document       = new SynopsisDocument();
 
     // ---------------------------------------------------------------------------
 
     let dragging_editor = false;
 
     // ---------------------------------------------------------------------------
-
-    const save_document = () => {
-        save_global(this.document.path, this.document.get_save_string());
-    }
 
     const content_key_listen = e => {
         if (e.key == "s" && e.ctrlKey) {
@@ -31,11 +26,7 @@ function SynopsisDocumentInterface() {
 
         this.active_scope = scope;
 
-        this.diagram.clear();
-
-        scope.nodes.forEach((_, node) => {
-            this.diagram.spawn_node(node);
-        });
+        this.diagram.set_content(scope.node_container);
 
         this.nav.set_nav(scope);
 
@@ -48,31 +39,15 @@ function SynopsisDocumentInterface() {
         load_scope(this.active_scope);
     }
 
-    // ---------------------------------------------------------------------------
+    const save_document = () => {
+        save_global(this.document.path, this.document.get_save_string());
+    }
 
-    this.nav.on_nav.subscribe(scope => {
-        load_scope(scope);
-    });
+    const load = element => {
 
-    this.node_container.on_add_node.subscribe(node => {
-
-        node.on_double_click.subscribe(() => {
-            load_scope(this.active_scope.get_scope(node));
-        });
-
-        node.on_delete.subscribe(() => {
-            this.active_scope.delete_node(node);
-        });
-
-        this.active_scope.add_node(node);
-
-    });
-
-    this.on_load.subscribe(element => {
-    
-        const editor    = element.querySelector("div.synopsis-document-editor");
-        const content   = element.querySelector("div.synopsis-document-content");
-        const nav       = element.querySelector("div.synopsis-document-nav");
+        const editor = element.querySelector("div.synopsis-document-editor");
+        const content = element.querySelector("div.synopsis-document-content");
+        const nav = element.querySelector("div.synopsis-document-nav");
 
         this.diagram.spawn(content);
         this.text_editor.spawn(editor);
@@ -99,9 +74,9 @@ function SynopsisDocumentInterface() {
         });
 
         element.addEventListener("mousedown", e => {
-            
+
             const L = element.clientWidth - editor.offsetWidth;
-            
+
             if (e.x > L - 10 && e.x < L + 10) {
                 dragging_editor = true;
                 element.style.cursor = "w-resize";
@@ -110,16 +85,16 @@ function SynopsisDocumentInterface() {
         });
 
         element.addEventListener("mousemove", e => {
-            
+
             const L = element.clientWidth - editor.offsetWidth;
-            
+
             if (dragging_editor) {
                 editor.style.width = element.clientWidth - e.x + "px";
             } else {
                 if (e.x > L - 10 && e.x < L + 10) {
-                    element.style.cursor = "w-resize";    
+                    element.style.cursor = "w-resize";
                 } else {
-                    element.style.cursor = "default";    
+                    element.style.cursor = "default";
                 }
             }
 
@@ -131,7 +106,15 @@ function SynopsisDocumentInterface() {
 
         this.document.load("nodetest.json");
 
+    };
+
+    // ---------------------------------------------------------------------------
+
+    this.nav.on_nav.subscribe(scope => {
+        load_scope(scope);
     });
+
+    this.on_load.subscribe(load);
 
     // ---------------------------------------------------------------------------
 
