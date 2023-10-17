@@ -4,7 +4,7 @@ function SynopsisScope(obj, parent_scope=null) {
     this.obj = obj; 
 
     this.parent_scope = parent_scope;
-
+    
     this.nodes = new Map();
     this.edges = null;
 

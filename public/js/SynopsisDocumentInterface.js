@@ -5,6 +5,7 @@ function SynopsisDocumentInterface() {
     this.text_editor    = new SynopsisMonacoEditor();
     this.node_container = new SynopsisNodeContainer();
     this.diagram        = new SynopsisCoordinateSystem(this.node_container);
+    this.nav            = new SynopsisNav();
 
     this.document       = new SynopsisDocument();
     this.active_scope   = null;
@@ -36,6 +37,8 @@ function SynopsisDocumentInterface() {
             this.diagram.spawn_node(node);
         });
 
+        this.nav.set_nav(scope);
+
         this.diagram.set_translation(0, 0);
     
     }
@@ -47,14 +50,34 @@ function SynopsisDocumentInterface() {
 
     // ---------------------------------------------------------------------------
 
+    this.nav.on_nav.subscribe(scope => {
+        load_scope(scope);
+    });
+
+    this.node_container.on_add_node.subscribe(node => {
+
+        node.on_double_click.subscribe(() => {
+            load_scope(this.active_scope.get_scope(node));
+        });
+
+        node.on_delete.subscribe(() => {
+            this.active_scope.delete_node(node);
+        });
+
+        this.active_scope.add_node(node);
+
+    });
+
     this.on_load.subscribe(element => {
     
         const editor    = element.querySelector("div.synopsis-document-editor");
         const content   = element.querySelector("div.synopsis-document-content");
+        const nav       = element.querySelector("div.synopsis-document-nav");
 
         this.diagram.spawn(content);
         this.text_editor.spawn(editor);
-        
+        this.nav.spawn(nav);
+
         content.addEventListener("mouseenter", () => {
             window.addEventListener("keydown", content_key_listen);
         });
@@ -110,31 +133,17 @@ function SynopsisDocumentInterface() {
 
     });
 
-    this.node_container.on_add_node.subscribe(node => {
-        
-        if (!this.active_scope.nodes.has(node)) {
-            this.document.print_obj();
-        }
-
-        node.on_double_click.subscribe(() => {
-            load_scope(this.active_scope.get_scope(node));
-        });
-
-        node.on_delete.subscribe(() => {
-            this.active_scope.delete_node(node);
-        });
-        
-        this.active_scope.add_node(node);
-
-    });
-
     // ---------------------------------------------------------------------------
 
     this.spawn = parent_generator => {
         place_in_dom(
             `
                 <div class="synopsis-document" style="display: flex;width: 100%;height: 100%;">
-                    <div class="synopsis-document-content" style="flex-grow: 1;">
+                    <div style="flex-grow: 1;display:flex;flex-direction: column;">
+                        <div class="synopsis-document-nav" style="padding: 2px 8px;background-color: #242424;">
+                        </div>
+                        <div class="synopsis-document-content" style="flex-grow: 1">
+                        </div>
                     </div>
                     <div class="synopsis-document-editor" style="min-width: 250px;font-family: Consolas;background-color: #1e1e1e;display:flex;flex-direction:column;width: 400px;">
                         <div style="text-align:center;padding: 8px;">New document</div>

@@ -54,7 +54,8 @@ function SynopsisCoordinateSystem(content) {
   }
 
   const clear_diagram = () => {
-    this.nodes.forEach(node => node.delete());
+    //this.nodes.forEach(node => node.delete());
+    this.nodes.clear();
   }
 
   const is_node = target => {
