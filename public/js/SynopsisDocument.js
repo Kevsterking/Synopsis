@@ -31,6 +31,10 @@ function SynopsisDocument() {
 
     this.load = load_from_file;
 
+    this.print_obj = () => {
+        console.log(data);
+    }
+
     this.get_save_string = () => {
         return JSON.stringify(data, null, 2);
     }

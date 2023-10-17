@@ -1,7 +1,7 @@
 
 function SynopsisScope(obj, parent_scope=null) {
-    
-    this.obj = obj;
+
+    this.obj = obj; 
 
     this.parent_scope = parent_scope;
 
@@ -46,7 +46,7 @@ function SynopsisScope(obj, parent_scope=null) {
         });
 
         this.obj.nodes = nodes; 
-
+       
     }
 
     // ---------------------------------------------------------------------------

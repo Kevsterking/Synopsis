@@ -28,6 +28,8 @@ function SynopsisDocumentInterface() {
 
     const load_scope = scope => {
 
+        this.active_scope = scope;
+
         this.diagram.clear();
 
         scope.nodes.forEach((_, node) => {
@@ -110,6 +112,10 @@ function SynopsisDocumentInterface() {
 
     this.node_container.on_add_node.subscribe(node => {
         
+        if (!this.active_scope.nodes.has(node)) {
+            this.document.print_obj();
+        }
+
         node.on_double_click.subscribe(() => {
             load_scope(this.active_scope.get_scope(node));
         });
