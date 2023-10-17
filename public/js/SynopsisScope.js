@@ -25,6 +25,11 @@ function SynopsisScope(obj, parent_scope=null) {
 
                 new_node.html = node_obj.html;
 
+                new_node.on_move.subscribe(() => {
+                    node_obj.x = new_node.position.x;
+                    node_obj.y = new_node.position.y;
+                });
+
                 this.nodes.set(new_node, new_scope);
 
             }
@@ -52,6 +57,17 @@ function SynopsisScope(obj, parent_scope=null) {
 
         const node_obj = {};
         const new_scope = new SynopsisScope(node_obj, this);
+
+        node.on_move.subscribe(() => {
+            node_obj.x = node.position.x;
+            node_obj.y = node.position.y;
+            update_obj();
+        });
+
+        node_obj.html = node.html;
+
+        node_obj.x = node.position.x;
+        node_obj.y = node.position.y;
 
         this.nodes.set(node, new_scope);
         

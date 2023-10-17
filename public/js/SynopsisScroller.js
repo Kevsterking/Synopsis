@@ -129,11 +129,15 @@ function SynopsisScroller() {
         element.addEventListener("wheel", e => {
         
             e.preventDefault();
-    
+            
             const dx = e.deltaX;
             const dy = e.deltaY;
 
-            this.scroll_to(state.target.x + dx, state.target.y + dy);
+            set_target(state.target.x + dx, state.target.y + dy);
+            set_position_keep_target(state.target.x, state.target.y);
+            this.on_scroll.trigger(this.position);
+
+            //this.scroll_to(state.target.x + dx, state.target.y + dy);
             
         });
 

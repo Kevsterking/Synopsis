@@ -44,7 +44,7 @@ function debug(str, opts) {
   }
 }
 
-function get_json(url, callback) {
+let get_json = function(url, callback) {
         
   const req = new XMLHttpRequest();
 

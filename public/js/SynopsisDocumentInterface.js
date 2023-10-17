@@ -16,7 +16,7 @@ function SynopsisDocumentInterface() {
     // ---------------------------------------------------------------------------
 
     const save_document = () => {
-        this.document.get_save_string();
+        save_global(this.document.path, this.document.get_save_string());
     }
 
     const content_key_listen = e => {
@@ -30,10 +30,8 @@ function SynopsisDocumentInterface() {
 
         this.diagram.clear();
 
-        scope.nodes.forEach((subscope, node) => {
-
+        scope.nodes.forEach((_, node) => {
             this.diagram.spawn_node(node);
-            
         });
 
         this.diagram.set_translation(0, 0);

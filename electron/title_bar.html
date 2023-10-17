@@ -81,8 +81,8 @@
                     <img class="unselectable app-draggable" style="height: 100%;border-radius: 50%;" src="https://en.hackndo.com/assets/uploads/2019/07/graphe_before.png" />
                 </div>
                 
-                <div style="display:flex;color:white;">
-                    <div class="hover-button">
+                <div id="menu-list" style="display:flex;color:white;">
+                    <div menuname="files" class="hover-button">
                         File
                     </div>
                     <div class="hover-button">
@@ -127,6 +127,13 @@
         document.querySelector("div#toggle-maximize-button").addEventListener("click", () => {
             window.electronAPI.toggle_maximize_window();
         });
+
+        document.querySelector("div#menu-list").addEventListener("click", e => {
+            const rect = e.target.getBoundingClientRect(); 
+            window.electronAPI.open_menu({ menu: e.target.getAttribute("menuname"), x: rect.left, y: rect.bottom });
+        });
+
+        //console.log = window.electronAPI.log;
 
     </script>
 

@@ -6,7 +6,7 @@ function SynopsisCoordinateSystem(content) {
   
   this.content    = content;
   this.background = new SynopsisGrid();   
-  this.scroller = new SynopsisScroller();
+  this.scroller   = new SynopsisScroller();
 
   this.selected = new Set();
   this.nodes    = new Set();
