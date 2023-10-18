@@ -8,7 +8,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node webserver.js",
-    "native": "node native.js"
+    "web": "node src/web/webserver.js",
+    "native": "node src/native/main.js"
   },
   "repository": {
     "type": "git",
