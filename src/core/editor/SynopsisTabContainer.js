@@ -89,9 +89,8 @@ function SynopsisTabContainer() {
                     
                 </div>
             `,
-            parent_generator,
-            this.on_load.trigger
-        );
+            parent_generator
+        ).then(this.on_load.trigger);
     }
 
 }

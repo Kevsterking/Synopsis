@@ -1,9 +1,18 @@
 const fs = require('fs/promises');
-const { Router, static } = require('express');
+const { Router } = require('express');
 
 const include_structure = {
     "core": {
+        "utility": [
+            "SynopsisResizeObserver.js",
+            "SynopsisUtil.js",
+            "SynopsisEvent.js"
+        ],
         "editor": [
+            "SynopsisTabController.js",
+            "SynopsisTab.js",
+            "SynopsisTabGenerator.js",
+            "SynopsisTabContainer.js",
             "SynopsisWorkspace.js"
         ],
     },
@@ -31,7 +40,7 @@ function IncludeServer(path, obj, allow_serveall=false, parent_server=null) {
                 .map(p => __dirname + this.path + '/' + p)
                 .map(get_file_content)
         ).then(a => {
-            return a.map(el => el.toString()).join('');
+            return a.map(el => el.toString()).join('\n');
         });
     }
 

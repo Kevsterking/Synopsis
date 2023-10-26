@@ -9,20 +9,31 @@ function place_in_dom(element_string, get_parent_dom, callback) {
 
   function getHtmlNode(html_string) {
     const template = document.createElement('template');
-    html_string = html_string.trim(); // Never return a text node of whitespace as the result
+    html_string = html_string.trim();
     template.innerHTML = html_string;
     return template.content.firstChild;
   }
 
   const place_procedure = () => {
-    const parent_dom = (typeof get_parent_dom == 'function' ? get_parent_dom() : get_parent_dom); 
+    const parent_dom = (typeof get_parent_dom == 'function' ? get_parent_dom() : get_parent_dom);
     const created_node = getHtmlNode(element_string);
     parent_dom ? parent_dom.appendChild(created_node) : 0;
     callback ? callback(created_node) : 0;
+    return created_node;
   }; 
 
-  if (document.readyState === 'complete') place_procedure();
-  else window.addEventListener('load', place_procedure);
+  return new Promise(resolve => {
+    
+    if (document.readyState === 'complete') {
+      resolve(place_procedure());
+    }
+    else {
+      window.addEventListener('load', () => {
+        resolve(place_procedure());
+      });
+    }
+
+  });
 
 }
 

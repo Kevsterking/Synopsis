@@ -19,8 +19,7 @@ function SynopsisWorkspace() {
                 </div>
             `,
             parent_generator,
-            this.on_load.trigger
-        );
+        ).then(this.on_load.trigger);
     }
 
 }
