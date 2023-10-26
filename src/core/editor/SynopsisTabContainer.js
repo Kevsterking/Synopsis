@@ -1,30 +1,45 @@
 function SynopsisTabContainer() {
 
-    this.on_load = new SynopsisEvent();
+    this.on_load    = new SynopsisEvent();
 
-    this.tabs           = new Set();
-    this.selected_tab   = null;
+    this.tab_stack  = new SynopsisTabStack();
+    this.active_tab = null;
 
-    this.tab_generator = new SynopsisTabGenerator();
+    this.tab_generator = null;
+
+    this.dom = {
+        content_container: null,
+        tabs_container_tabs: null,
+        add_tab_button: null
+    }
 
     // ---------------------------------------------------------------------------
 
     const select_tab = tab => {
-        this.tabs.forEach(t => t.hide());
-        tab.show();
-        this.selected_tab = tab;
+    
+        if (this.active_tab == tab) return;
+
+        tab ? tab.show() : 0;
+        this.active_tab ? this.active_tab.hide() : 0;
+        this.active_tab = tab ? tab : null;
+        tab ? this.tab_stack.add(tab) : 0;
+    
     }
 
     const remove_tab = tab => {
-        this.tabs.delete(tab);
-        if (tab == this.selected_tab) select_tab(this.tabs.values().next().value);
+    
+        this.tab_stack.delete(tab);
+
+        if (tab == this.active_tab) {
+            select_tab(this.tab_stack.get_active());
+        }
+
     } 
 
     const attach_tab_events = tab => {
         
         tab.on_click.subscribe(() => {
-            this.tabs.forEach(t => t.hide());
-            tab.show();
+            select_tab(tab);
         });
 
         tab.on_close.subscribe(() => {
@@ -32,42 +47,55 @@ function SynopsisTabContainer() {
             tab.delete();
         });
 
+        tab.on_load.subscribe(() => {
+            select_tab(tab);
+        });
+
+    }
+
+    const add_tab = () => {
+        const new_tab = this.tab_generator.get_new_tab();
+        attach_tab_events(new_tab);
+        new_tab.spawn(this.dom.tabs_container_tabs);
+    }
+
+    const bind_controls = () => {
+
+        const tab_button = this.dom.add_tab_button;
+
+        tab_button.addEventListener("mouseenter", () => {
+            tab_button.style.filter = "brightness(120%)";;
+        });
+
+        tab_button.addEventListener("mouseleave", () => {
+            tab_button.style.filter = "brightness(100%)";;
+        });
+
+        tab_button.addEventListener("click", () => {
+            this.add_tab();
+        });
+
+    }
+
+    const load = element => {
+
+        this.dom.content_container      = element.querySelector("div.synopsis-tab-container-content");
+        this.dom.tabs_container_tabs    = element.querySelector("div.synopsis-tab-container-tabs-container");
+        this.dom.add_tab_button         = element.querySelector("div.synopsis-tab-container-add-tab");
+
+        this.tab_generator = new SynopsisTabGenerator(this.dom.content_container);
+
+        this.add_tab = add_tab;
+
+        bind_controls();
+
+        this.add_tab();
+
     }
 
     // ---------------------------------------------------------------------------
 
-    this.on_load.subscribe(element => {
-
-        const content_container     = element.querySelector("div.synopsis-tab-container-content"); 
-        const tabs_container_tabs   = element.querySelector("div.synopsis-tab-container-tabs-container");
-        const add_tab_button        = element.querySelector("div.synopsis-tab-container-add-tab");
-
-        this.tab_generator = new SynopsisTabGenerator(content_container);
-
-        this.add_tab = () => {
-            let new_tab = this.tab_generator.get_new_tab();
-            attach_tab_events(new_tab);
-            this.tabs.add(new_tab);
-            new_tab.spawn(tabs_container_tabs);
-            select_tab(new_tab);
-            return new_tab;
-        }
-
-        add_tab_button.addEventListener("mouseenter", () => {
-            add_tab_button.style.filter = "brightness(120%)";;
-        });
-
-        add_tab_button.addEventListener("mouseleave", () => {
-            add_tab_button.style.filter = "brightness(100%)";;
-        });
-        
-        add_tab_button.addEventListener("click", () => {
-            this.add_tab();
-        });
-
-        this.add_tab();
-
-    });
+    this.on_load.subscribe(load);
 
     // ---------------------------------------------------------------------------
 

@@ -1,40 +1,41 @@
-function SynopsisTabController(tab) {
+function SynopsisTabController() {
 
-    tab.on_load.subscribe(element => {
+    this.bind = tab => {
 
-        const x_dom = element.querySelector("p.x-box");
+        const tab_element = tab.dom.tab; 
+        const x_button = tab.dom.x_button;
 
-        this.on_delete.subscribe(() => {
-            element.remove();
+        tab_element.addEventListener("click", () => {
+            tab.on_click.trigger();
         });
 
-        element.addEventListener("click", tab.on_click.trigger);
-
-        element.addEventListener("mouseenter", () => {
+        tab_element.addEventListener("mouseenter", () => {
             if (!tab.showing) {
-                x_dom.style.visibility = "visible";
+                x_button.style.visibility = "visible";
             }
         });
 
-        element.addEventListener("mouseleave", () => {
+        tab_element.addEventListener("mouseleave", () => {
             if (!tab.showing) {
-                x_dom.style.visibility = "hidden";
+                x_button.style.visibility = "hidden";
             }
         });
 
-        x_dom.addEventListener("mouseenter", () => {
-            x_dom.style.color = "rgba(255, 255, 255, 0.7)";
+        x_button.addEventListener("mouseenter", () => {
+            x_button.style.color = "rgba(255, 255, 255, 0.7)";
         });
 
-        x_dom.addEventListener("mouseleave", () => {
-            x_dom.style.color = "rgba(255, 255, 255, 0.4)";
+        x_button.addEventListener("mouseleave", () => {
+            x_button.style.color = "rgba(255, 255, 255, 0.4)";
         });
 
-        x_dom.addEventListener("click", e => {
+        x_button.addEventListener("click", e => {
             e.preventDefault();
+            e.stopPropagation();
             tab.on_close.trigger(e);
         });
 
-    });
+
+    }
 
 }

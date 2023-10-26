@@ -12,6 +12,7 @@ const include_structure = {
             "SynopsisTabController.js",
             "SynopsisTab.js",
             "SynopsisTabGenerator.js",
+            "SynopsisTabStack.js",
             "SynopsisTabContainer.js",
             "SynopsisWorkspace.js"
         ],
