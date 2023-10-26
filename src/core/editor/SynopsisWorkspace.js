@@ -2,12 +2,12 @@ function SynopsisWorkspace() {
 
     this.on_load = new SynopsisEvent();
     
-    this.content = new SynopsisTabContainer();
+    this.tab_container = new SynopsisTabContainer();
 
     // ---------------------------------------------------------------------------
 
     this.on_load.subscribe(element => {
-        this.content.spawn(element);
+        this.tab_container.spawn(element);
     });
 
     // ---------------------------------------------------------------------------

@@ -16,6 +16,14 @@ const include_structure = {
             "SynopsisTabContainer.js": null,
             "SynopsisWorkspace.js": null,
         },
+        "text-editor": {
+            "SynopsisMonacoEditor.js": null,
+        },
+        "document": {
+            "SynopsisDocument.js": null,
+
+        },
+        "SynopsisDocumentInterface.js": null,
         "Synopsis.js": null,
     },
 }
