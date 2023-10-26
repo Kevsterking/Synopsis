@@ -1,4 +1,6 @@
 let documents = [];
 
-const workspace = new SynopsisWorkspace();
-workspace.spawn(() => document.getElementById('root'));
+let synopsis = new Synopsis();
+
+synopsis.spawn(() => document.getElementById('root'));
+

@@ -77,7 +77,7 @@ function SynopsisTab(name, content_box) {
         const place_tab_box = place_in_dom(
             `<div class="synopsis-tab" style='user-select: none;background-color: #1e1e1e;display: flex;align-items:center;gap: 10px;padding: 4px 10px;'>
                 <div style="border-radius:50%;background-color:red;width:5px;height:5px;"></div>
-                <p class="name-box">` + name + `</p>
+                <p class="name-box" style="white-space: nowrap;">` + name + `</p>
                 <p class="x-button" style="font-size: 20px;color:rgba(255, 255, 255, 0.4);visibility: hidden;padding: 3px;">×</p>
             </div>`,
             parent_generator

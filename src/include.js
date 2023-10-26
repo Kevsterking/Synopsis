@@ -3,103 +3,86 @@ const { Router } = require('express');
 
 const include_structure = {
     "core": {
-        "utility": [
-            "SynopsisResizeObserver.js",
-            "SynopsisUtil.js",
-            "SynopsisEvent.js"
-        ],
-        "editor": [
-            "SynopsisTabController.js",
-            "SynopsisTab.js",
-            "SynopsisTabGenerator.js",
-            "SynopsisTabStack.js",
-            "SynopsisTabContainer.js",
-            "SynopsisWorkspace.js"
-        ],
+        "utility": {
+            "SynopsisResizeObserver.js": null,
+            "SynopsisUtil.js": null,
+            "SynopsisEvent.js": null,
+        },
+        "editor": {
+            "SynopsisTabController.js": null,
+            "SynopsisTab.js": null,
+            "SynopsisTabGenerator.js": null,
+            "SynopsisTabStack.js": null,
+            "SynopsisTabContainer.js": null,
+            "SynopsisWorkspace.js": null,
+        },
+        "Synopsis.js": null,
     },
 }
 
-function IncludeServer(path, obj, allow_serveall=false, parent_server=null) {
+function IncludeServer(path, structure) {
 
     this.router = new Router();
-
-    this.obj = obj;
-    this.path = path;
-    this.parent_server = parent_server;
-
-    this.subservers = [];
+    this.subservers = new Map();
 
     // ---------------------------------------------------------------------------
 
-    const get_file_content = filepath => {
-        return fs.readFile(filepath);
+    const get_file_string = path => {
+        return fs.readFile(__dirname + "/" + path);
     }
 
-    const get_all_as_one_file = () => {
-        return Promise.all(
-            obj
-                .map(p => __dirname + this.path + '/' + p)
-                .map(get_file_content)
-        ).then(a => {
-            return a.map(el => el.toString()).join('\n');
+    const get_total_string = () => {
+        
+        let promise_arr = [];
+
+        for (const key in structure) {
+
+            const fpath = path + "/" + key;
+
+            if (structure[key]) {
+                promise_arr.push(this.subservers.get(key).get_total_string())
+            } else {
+                promise_arr.push(get_file_string(fpath));
+            }
+
+        }
+
+        return Promise.all(promise_arr).then(str_arr => str_arr.join("\n"));
+
+    }
+
+    // ---------------------------------------------------------------------------
+
+    this.get_total_string = get_total_string;
+
+    // ---------------------------------------------------------------------------
+
+    this.router.get(path, (_, res) => {
+        get_total_string().then(string => {
+            res.send(string);
         });
-    }
+    });
 
-    const send_file = filepath => {
-        return (_, res) => {
-            res.sendFile(filepath);
-        }
-    }
+    for (const key in structure) {
 
-    const is_array_setup = () => {
+        const fpath = path + "/" + key;
+        
+        if (structure[key]) {
+        
+            const subserver = new IncludeServer(fpath, structure[key])
+            this.subservers.set(key, subserver);
+            this.router.get(fpath, subserver.router);
+            this.router.get(fpath + "/*", subserver.router);
+        
+        } else {
 
-        if (allow_serveall) this.get_all_as_one_file = get_all_as_one_file;
-
-        for (const filename of obj) {
-            const subpath = this.path + '/' + filename; 
-            this.router.get(subpath, send_file(__dirname + subpath));
-        }
-    
-    }
-
-    const is_object_setup = () => {
-
-        if (allow_serveall) {
-            this.get_all_as_one_file = () => {
-                return Promise.all(
-                    this.subservers.map(ss => ss.get_all_as_one_file())
-                ).then(arr => {
-                    return arr.join('');
-                });
-            }
-        }
-
-        for (const path in obj) {
-
-            const subpath = this.path + '/' + path;
-
-            const subserver = new IncludeServer(subpath, obj[path], true, this);
-
-            this.subservers.push(subserver);
-            
-            if (subserver.get_all_as_one_file) {
-                this.router.get(subpath, (_, res) => {
-                    subserver.get_all_as_one_file().then(str => {
-                        res.send(str)
-                    });
-                });
-            }
-
-            this.router.get(subpath + '/*', subserver.router);
-
+            this.router.get(fpath, (_, res) => {
+                res.sendFile(__dirname + "/" + fpath);
+            });
+        
         }
 
     }
-
-    // ---------------------------------------------------------------------------
-
-    if (obj instanceof Array)           is_array_setup();
-    else if (typeof obj == "object")    is_object_setup();
 
 }
 

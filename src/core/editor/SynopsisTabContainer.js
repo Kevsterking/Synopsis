@@ -102,10 +102,10 @@ function SynopsisTabContainer() {
     this.spawn = parent_generator => {
         place_in_dom(
             `
-                <div class="synopsis-tab-container" style='color:white;display: flex;flex-direction: column;flex-grow: 1;'>
+                <div class="synopsis-tab-container" style='color:white;display: flex;flex-direction: column;flex-grow: 1;width:100%;height:100%;'>
                     
-                    <div class="synopsis-tab-container-tabs" style='font-family:arial;cursor: pointer;display: flex;gap:1px;background-color: rgb(47, 47, 47);'>
-                        <div class="synopsis-tab-container-tabs-container" style="display: flex;gap:1px;">
+                    <div class="synopsis-tab-container-tabs" style='font-family:arial;cursor: pointer;display: flex;gap:1px;background-color: rgb(47, 47, 47);width:100%;'>
+                        <div class="synopsis-tab-container-tabs-container" style="display: flex;gap:1px;overflow-x:auto;">
                         </div>
                         <div class="synopsis-tab-container-add-tab" style="color:rgba(255, 255, 255, 0.4);font-size:16px;padding: 8px 10px;background-color:#1e1e1e;">
                             <p>&#65291;</p>
