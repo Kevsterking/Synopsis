@@ -1,6 +1,9 @@
-function SynopsisTabContainer() {
+function SynopsisTabContainer(default_page) {
 
     this.on_load    = new SynopsisEvent();
+
+    this.default_page = default_page;
+    this.default_page_element = null;
 
     this.tab_stack  = new SynopsisTabStack();
     this.active_tab = null;
@@ -15,12 +18,22 @@ function SynopsisTabContainer() {
 
     // ---------------------------------------------------------------------------
 
+    const show_default_page = () => {
+        if (!this.default_page_element) return;
+        this.default_page_element.style.display = "block";
+    }
+
+    const hide_default_page = () => {
+        if (!this.default_page_element) return;
+        this.default_page_element.style.display = "none";
+    }
+
     const select_tab = tab => {
     
         if (this.active_tab == tab) return;
 
-        tab ? tab.show() : 0;
-        this.active_tab ? this.active_tab.hide() : 0;
+        tab ? tab.show() : show_default_page();
+        this.active_tab ? this.active_tab.hide() : hide_default_page();
         this.active_tab = tab ? tab : null;
         tab ? this.tab_stack.add(tab) : 0;
     
@@ -89,13 +102,19 @@ function SynopsisTabContainer() {
 
         bind_controls();
 
-        this.add_tab();
+        this.default_page.spawn(this.dom.content_container);
+
+        //this.add_tab();
 
     }
 
     // ---------------------------------------------------------------------------
 
     this.on_load.subscribe(load);
+
+    this.default_page.on_load.subscribe(element => {
+        this.default_page_element = element;
+    });
 
     // ---------------------------------------------------------------------------
 

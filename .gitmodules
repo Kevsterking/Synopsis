@@ -1,0 +1,3 @@
+[submodule "monaco-editor"]
+	path = src/core/text-editor/monaco-editor
+	url = https://github.com/microsoft/monaco-editor

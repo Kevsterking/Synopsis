@@ -35,7 +35,6 @@ function SynopsisTabController() {
             tab.on_close.trigger(e);
         });
 
-
     }
 
 }

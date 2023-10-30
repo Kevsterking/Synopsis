@@ -24,6 +24,7 @@ const include_structure = {
 
         },
         "SynopsisDocumentInterface.js": null,
+        "SynopsisHomepage.js": null,
         "Synopsis.js": null,
     },
 }

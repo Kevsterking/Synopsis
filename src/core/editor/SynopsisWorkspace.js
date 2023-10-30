@@ -1,8 +1,8 @@
-function SynopsisWorkspace() {
+function SynopsisWorkspace(config) {
 
     this.on_load = new SynopsisEvent();
     
-    this.tab_container = new SynopsisTabContainer();
+    this.tab_container = new SynopsisTabContainer(config?.default_page);
 
     // ---------------------------------------------------------------------------
 
@@ -15,7 +15,7 @@ function SynopsisWorkspace() {
     this.spawn = parent_generator => {
         place_in_dom(
             `
-                <div class="synopsis-workspace" style='width: 100vw;height: 100vh;display: flex;background-color: rgb(41, 41, 41)'>
+                <div class="synopsis-workspace" style='width:100%;height:100%;display: flex;background-color: rgb(41, 41, 41)'>
                 </div>
             `,
             parent_generator,
