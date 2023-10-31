@@ -5,12 +5,9 @@ function SynopsisDocumentInterface() {
     this.diagram    = new SynopsisCoordinateSystem();
     this.nav        = new SynopsisNav();
 
-    /*
-    this.text_editor    = new SynopsisTextEditor();
-
-    this.active_scope   = null;
     this.document       = new SynopsisDocument();
-    */
+
+    this.active_scope = null;
 
     // ---------------------------------------------------------------------------
 
@@ -50,10 +47,6 @@ function SynopsisDocumentInterface() {
         this.diagram.spawn(content);
         this.nav.spawn(nav);
         
-        /*
-        this.text_editor.spawn(editor);
-        */
-
         content.addEventListener("mouseenter", () => {
             window.addEventListener("keydown", content_key_listen);
         });
@@ -101,24 +94,20 @@ function SynopsisDocumentInterface() {
 
         });
 
-        /*
         this.document.on_load.subscribe(() => {
             load_document(this.document);
         });
 
         this.document.load("nodetest.json");
-        */
-
+        
     };
 
     // ---------------------------------------------------------------------------
 
-    /*
     this.nav.on_nav.subscribe(scope => {
         load_scope(scope);
     });
-    */
-
+    
     this.on_load.subscribe(load);
 
     // ---------------------------------------------------------------------------

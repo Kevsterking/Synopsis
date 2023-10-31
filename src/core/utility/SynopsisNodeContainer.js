@@ -1,10 +1,13 @@
 function SynopsisNodeContainer() {
 
+  SynopsisComponent.call(this);
+
   this.extent = new SynopsisContainExtent();  
 
-  this.on_load          = new SynopsisEvent();
   this.on_add_node      = new SynopsisEvent();
   this.on_extent_change = this.extent.on_change;
+
+  this.element = null;
 
   // ---------------------------------------------------------------------------
 
@@ -49,7 +52,7 @@ function SynopsisNodeContainer() {
 
   // ---------------------------------------------------------------------------
 
-  this.on_load.subscribe(element => {
+  this.before_load.subscribe(element => {
     this.element    = element;
     this.translator = this.element.querySelector('*.diagram-nodes-translator');
   });
@@ -60,16 +63,13 @@ function SynopsisNodeContainer() {
 
   this.add_node = add_node;
 
-  this.spawn = parent_generator => {
-    return place_in_dom(
-      `
-        <div class="diagram-nodes" style="box-sizing: content-box;position:relative;border: 1px solid white;">
-          <div class="diagram-nodes-translator" style="position:absolute;width: 0;">
-          </div>
+  this.get_dom_string = () => {
+    return `
+      <div class="diagram-nodes" style="box-sizing: content-box;position:relative;border: 1px solid white;">
+        <div class="diagram-nodes-translator" style="position:absolute;width: 0;">
         </div>
-      `,
-      parent_generator
-    ).then(this.on_load.trigger);
+      </div>
+    `;
   }
   
 }

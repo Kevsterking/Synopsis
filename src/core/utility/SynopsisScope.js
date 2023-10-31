@@ -95,7 +95,8 @@ function SynopsisScope(obj, parent_scope=null) {
 
     // ---------------------------------------------------------------------------
 
-    this.node_container.spawn(null);
-    load_from_obj(obj);
+    this.node_container.spawn().then(() => {
+        load_from_obj(obj);
+    });
 
 }

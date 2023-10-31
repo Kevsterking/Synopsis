@@ -1,4 +1,4 @@
-function SynopsisMonacoEditor() {
+function SynopsisTextEditor() {
 
     //require.config({ paths: { vs: 'min/vs' } });
     

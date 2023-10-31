@@ -6,13 +6,15 @@ const include_structure = {
         "utility": {
             "SynopsisResizeObserver.js": null,
             "SynopsisUtil.js": null,
+            "SynopsisCoordinate.js": null,
             "SynopsisEvent.js": null,
             "SynopsisComponent.js": null,
-            "SynopsisNodeContainer.js": null,
-            "SynopsisContainExtent.js": null,
             "SynopsisExtent.js": null,
             "SynopsisTree.js": null,
-            "SynopsisCoordinate.js": null,
+            "SynopsisContainExtent.js": null,
+            "SynopsisNode.js": null,
+            "SynopsisNodeContainer.js": null,
+            "SynopsisScope.js": null,
             "SynopsisScroller.js": null,
         },
         "diagram": {
@@ -29,6 +31,7 @@ const include_structure = {
             "SynopsisWorkspace.js": null,
         },
         "text-editor": {
+            "monaco-editor/out/monaco-editor/min/vs/loader.js": null,
             "SynopsisTextEditor.js": null,
         },
         "document": {
