@@ -1,14 +1,14 @@
-function SynopsisTabContainer(default_page) {
+function SynopsisTabContainer(config) {
 
-    this.on_load    = new SynopsisEvent();
+    SynopsisComponent.call(this)
 
-    this.default_page = default_page;
+    this.default_page = config?.default_page;
     this.default_page_element = null;
 
     this.tab_stack  = new SynopsisTabStack();
     this.active_tab = null;
 
-    this.tab_generator = null;
+    this.tab_generator = new SynopsisTabGenerator(config?.default_content_generator);
 
     this.dom = {
         content_container: null,
@@ -96,7 +96,7 @@ function SynopsisTabContainer(default_page) {
         this.dom.tabs_container_tabs    = element.querySelector("div.synopsis-tab-container-tabs-container");
         this.dom.add_tab_button         = element.querySelector("div.synopsis-tab-container-add-tab");
 
-        this.tab_generator = new SynopsisTabGenerator(this.dom.content_container);
+        this.tab_generator.bind(this.dom.content_container);
 
         this.add_tab = add_tab;
 
@@ -118,26 +118,23 @@ function SynopsisTabContainer(default_page) {
 
     // ---------------------------------------------------------------------------
 
-    this.spawn = parent_generator => {
-        place_in_dom(
-            `
-                <div class="synopsis-tab-container" style='color:white;display: flex;flex-direction: column;flex-grow: 1;width:100%;height:100%;'>
-                    
-                    <div class="synopsis-tab-container-tabs" style='font-family:arial;cursor: pointer;display: flex;gap:1px;background-color: rgb(47, 47, 47);width:100%;'>
-                        <div class="synopsis-tab-container-tabs-container" style="display: flex;gap:1px;overflow-x:auto;">
-                        </div>
-                        <div class="synopsis-tab-container-add-tab" style="color:rgba(255, 255, 255, 0.4);font-size:16px;padding: 8px 10px;background-color:#1e1e1e;">
-                            <p>&#65291;</p>
-                        </div>
+    this.get_dom_string = () => {
+        return `
+            <div class="synopsis-tab-container" style='color:white;display: flex;flex-direction: column;flex-grow: 1;width:100%;height:100%;'>
+                
+                <div class="synopsis-tab-container-tabs" style='font-family:arial;cursor: pointer;display: flex;gap:1px;background-color: rgb(47, 47, 47);width:100%;'>
+                    <div class="synopsis-tab-container-tabs-container" style="display: flex;gap:1px;overflow-x:auto;">
                     </div>
-    
-                    <div class="synopsis-tab-container-content" style='position:relative;overflow:hidden;flex-grow: 1;'>
+                    <div class="synopsis-tab-container-add-tab" style="color:rgba(255, 255, 255, 0.4);font-size:16px;padding: 8px 10px;background-color:#1e1e1e;">
+                        <p>&#65291;</p>
                     </div>
-                    
                 </div>
-            `,
-            parent_generator
-        ).then(this.on_load.trigger);
+
+                <div class="synopsis-tab-container-content" style='position:relative;overflow:hidden;flex-grow: 1;'>
+                </div>
+                
+            </div>
+        `; 
     }
 
 }

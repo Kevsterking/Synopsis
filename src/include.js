@@ -7,6 +7,18 @@ const include_structure = {
             "SynopsisResizeObserver.js": null,
             "SynopsisUtil.js": null,
             "SynopsisEvent.js": null,
+            "SynopsisComponent.js": null,
+            "SynopsisNodeContainer.js": null,
+            "SynopsisContainExtent.js": null,
+            "SynopsisExtent.js": null,
+            "SynopsisTree.js": null,
+            "SynopsisCoordinate.js": null,
+            "SynopsisScroller.js": null,
+        },
+        "diagram": {
+            "SynopsisCoorditnateSystem.js": null,
+            "SynopsisGrid.js": null,
+            "SynopsisNav.js": null
         },
         "editor": {
             "SynopsisTabController.js": null,
@@ -17,7 +29,7 @@ const include_structure = {
             "SynopsisWorkspace.js": null,
         },
         "text-editor": {
-            "SynopsisMonacoEditor.js": null,
+            "SynopsisTextEditor.js": null,
         },
         "document": {
             "SynopsisDocument.js": null,

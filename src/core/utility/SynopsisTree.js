@@ -1,11 +1,11 @@
-function AVLTreeNode(key) {
+function SynopsisTreeNode(key) {
   this.key = key;
   this.left = null;
   this.right = null;
 }
 
 // TODO: Not actually a avl tree only bst tree at the moment. fix it
-function AVLTree(compare) {
+function SynopsisTree(compare) {
   
   this.root = null; 
   this.compare = compare;
@@ -14,7 +14,7 @@ function AVLTree(compare) {
     
     /* If the tree is empty, return a new node */
     if (node === null) {
-      return new AVLTreeNode(key);
+      return new SynopsisTreeNode(key);
     }
    
     /* Otherwise, recur down the tree */

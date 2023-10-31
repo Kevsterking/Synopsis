@@ -1,6 +1,7 @@
 function SynopsisTab(name, content_box) {
 
-    this.on_load            = new SynopsisEvent();
+    SynopsisComponent.call(this);
+
     this.on_content_load    = new SynopsisEvent();
     this.on_click           = new SynopsisEvent(); 
     this.on_close           = new SynopsisEvent();
@@ -8,15 +9,14 @@ function SynopsisTab(name, content_box) {
     
     this.tab_controller     = new SynopsisTabController();
 
-    this.showing = false;
-
-    this.name = name;
-
     this.dom = {
         tab: null,
         content: null,
         x_button: null,
     }
+
+    this.name = name;
+    this.showing = false;
 
     // ---------------------------------------------------------------------------
 

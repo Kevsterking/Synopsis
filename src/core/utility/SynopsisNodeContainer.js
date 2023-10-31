@@ -61,16 +61,15 @@ function SynopsisNodeContainer() {
   this.add_node = add_node;
 
   this.spawn = parent_generator => {
-    place_in_dom(
+    return place_in_dom(
       `
         <div class="diagram-nodes" style="box-sizing: content-box;position:relative;border: 1px solid white;">
           <div class="diagram-nodes-translator" style="position:absolute;width: 0;">
           </div>
         </div>
       `,
-      parent_generator,
-      this.on_load.trigger
-    );
+      parent_generator
+    ).then(this.on_load.trigger);
   }
   
 }

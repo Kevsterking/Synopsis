@@ -69,11 +69,21 @@ function SynopsisCoordinateSystem() {
   }
 
   const set_content = content => {
-    move_to_void_dom(this.content.element);
+    this.content?.element ? move_to_void_dom(this.content.element) : 0;
     this.content = content;
-    this.content_container.appendChild(content.element);
-    this.content.on_extent_change.subscribe(full_update);
-    full_update();
+    
+    if (this.content.element) {
+      this.content_container.appendChild(this.content.element);
+      this.content.on_extent_change.subscribe(full_update);
+      full_update();
+    } else {
+      this.content.spawn().then(() => {
+        this.content_container.appendChild(this.content.element);
+        this.content.on_extent_change.subscribe(full_update);
+        full_update();
+      });
+    }
+  
   }
 
   const load = element => {

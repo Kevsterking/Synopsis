@@ -9,10 +9,10 @@ function SynopsisContainExtent() {
 
     const subextent_map = new Map();
 
-    const xmin = new AVLTree((a, b) => { return a.x.min < b.x.min });
-    const xmax = new AVLTree((a, b) => { return a.x.max > b.x.max });
-    const ymin = new AVLTree((a, b) => { return a.y.min < b.y.min });
-    const ymax = new AVLTree((a, b) => { return a.y.max > b.y.max });
+    const xmin = new SynopsisTree((a, b) => { return a.x.min < b.x.min });
+    const xmax = new SynopsisTree((a, b) => { return a.x.max > b.x.max });
+    const ymin = new SynopsisTree((a, b) => { return a.y.min < b.y.min });
+    const ymax = new SynopsisTree((a, b) => { return a.y.max > b.y.max });
 
     // ---------------------------------------------------------------------------
 

@@ -1,11 +1,20 @@
-function SynopsisTabGenerator(content_container) {
+function SynopsisTabGenerator(generate_component) {
 
-    this.tab_content_container = content_container;
+    this.bind = container => {
+        this.tab_content_container = container;
+    }
 
-    // ---------------------------------------------------------------------------
-    
     this.get_new_tab = () => {
-        return new SynopsisTab("New document", this.tab_content_container);
+        
+        const tab = new SynopsisTab("New Module", this.tab_content_container);
+        const component = generate_component ? generate_component() : null;
+        
+        tab.on_load.subscribe((_, content) => {
+            component?.spawn(content);
+        });
+
+        return tab;
+    
     }    
 
 }

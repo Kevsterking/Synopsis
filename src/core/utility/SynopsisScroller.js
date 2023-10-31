@@ -130,14 +130,16 @@ function SynopsisScroller() {
         
             e.preventDefault();
             
-            const dx = e.deltaX;
-            const dy = e.deltaY;
+            const dx = shift_pressed ? e.deltaY : 0;
+            const dy = !shift_pressed ? e.deltaY : 0;
 
+            /*
             set_target(state.target.x + dx, state.target.y + dy);
             set_position_keep_target(state.target.x, state.target.y);
             this.on_scroll.trigger(this.position);
+            */
 
-            //this.scroll_to(state.target.x + dx, state.target.y + dy);
+            this.scroll_to(state.target.x + dx, state.target.y + dy);
             
         });
 

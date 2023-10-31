@@ -2,7 +2,10 @@ function Synopsis() {
     
     this.on_load = new SynopsisEvent();
     
-    this.workspace = new SynopsisWorkspace({ default_page: new SynopsisHomepage(this) });
+    this.workspace = new SynopsisWorkspace({ 
+        default_page: new SynopsisHomepage(this),
+        default_content_generator: () => new SynopsisDocumentInterface()
+    });
 
     // ---------------------------------------------------------------------------
 

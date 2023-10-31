@@ -1,13 +1,16 @@
 function SynopsisDocumentInterface() {
 
-    this.on_load        = new SynopsisEvent();
-  
-    this.text_editor    = new SynopsisMonacoEditor();
-    this.diagram        = new SynopsisCoordinateSystem();
-    this.nav            = new SynopsisNav();
+    SynopsisComponent.call(this);
+    
+    this.diagram    = new SynopsisCoordinateSystem();
+    this.nav        = new SynopsisNav();
+
+    /*
+    this.text_editor    = new SynopsisTextEditor();
 
     this.active_scope   = null;
     this.document       = new SynopsisDocument();
+    */
 
     // ---------------------------------------------------------------------------
 
@@ -23,15 +26,10 @@ function SynopsisDocumentInterface() {
     }
 
     const load_scope = scope => {
-
         this.active_scope = scope;
-
         this.diagram.set_content(scope.node_container);
-
         this.nav.set_nav(scope);
-
         this.diagram.set_translation(0, 0);
-    
     }
 
     const load_document = document => {
@@ -50,8 +48,11 @@ function SynopsisDocumentInterface() {
         const nav = element.querySelector("div.synopsis-document-nav");
 
         this.diagram.spawn(content);
-        this.text_editor.spawn(editor);
         this.nav.spawn(nav);
+        
+        /*
+        this.text_editor.spawn(editor);
+        */
 
         content.addEventListener("mouseenter", () => {
             window.addEventListener("keydown", content_key_listen);
@@ -100,44 +101,44 @@ function SynopsisDocumentInterface() {
 
         });
 
+        /*
         this.document.on_load.subscribe(() => {
             load_document(this.document);
         });
 
         this.document.load("nodetest.json");
+        */
 
     };
 
     // ---------------------------------------------------------------------------
 
+    /*
     this.nav.on_nav.subscribe(scope => {
         load_scope(scope);
     });
+    */
 
     this.on_load.subscribe(load);
 
     // ---------------------------------------------------------------------------
 
-    this.spawn = parent_generator => {
-        place_in_dom(
-            `
-                <div class="synopsis-document" style="display: flex;width: 100%;height: 100%;">
-                    <div style="flex-grow: 1;display:flex;flex-direction: column;">
-                        <div class="synopsis-document-nav" style="padding: 2px 8px;background-color: #242424;">
-                        </div>
-                        <div class="synopsis-document-content" style="flex-grow: 1">
-                        </div>
+    this.get_dom_string = () => {
+        return `
+            <div class="synopsis-document" style="display: flex;width: 100%;height: 100%;">
+                <div style="flex-grow: 1;display:flex;flex-direction: column;">
+                    <div class="synopsis-document-nav" style="padding: 2px 8px;background-color: #242424;">
                     </div>
-                    <div class="synopsis-document-editor" style="min-width: 250px;font-family: Consolas;background-color: #1e1e1e;display:flex;flex-direction:column;width: 400px;">
-                        <div style="text-align:center;padding: 8px;">New document</div>
-                        <div class="synopsis-document-editor-container">
-                        </div>
+                    <div class="synopsis-document-content" style="flex-grow: 1">
                     </div>
                 </div>
-            `,
-            parent_generator, 
-            this.on_load.trigger
-        );
+                <div class="synopsis-document-editor" style="min-width: 250px;font-family: Consolas;background-color: #1e1e1e;display:flex;flex-direction:column;width: 400px;">
+                    <div style="text-align:center;padding: 8px;">New Module</div>
+                    <div class="synopsis-document-editor-container">
+                    </div>
+                </div>
+            </div>
+        `;
     }
 
 }
