@@ -18,7 +18,7 @@ function createWindow() {
 
     const menu_view     = new BrowserView({
         webPreferences: {
-            preload: path.join(__dirname, 'menu_preload.js')
+            preload: path.join(__dirname, 'menu/menu_preload.js')
         }
     });
 
@@ -119,7 +119,7 @@ function createWindow() {
     win.addBrowserView(content_view);
 
     content_view.webContents.loadURL('http://localhost:3000/');
-    menu_view.webContents.loadFile('title_bar.html');
+    menu_view.webContents.loadFile('menu/title_bar.html');
 
     update_view();
 

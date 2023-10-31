@@ -9,7 +9,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node ./src/web/webserver.js",
     "web": "node ./src/web/webserver.js",
-    "native": "node src/native/main.js"
+    "native": "electron ./src/native/main.js"
   },
   "repository": {
     "type": "git",
@@ -21,7 +21,7 @@
   "author": "Kevin Bäckstäde",
   "license": "ISC",
   "dependencies": {
-    "electron": "^26.3.0",
+    "electron": "^26.4.2",
     "express": "^4.18.2",
     "react": "^18.2.0",
     "react-native": "^0.72.4"
