@@ -2,6 +2,8 @@ function SynopsisDocumentInterface() {
 
     SynopsisComponent.call(this);
     
+    this.on_load_scope = new SynopsisEvent();
+
     this.document   = new SynopsisDocument();
     this.diagram    = new SynopsisCoordinateSystem();
     this.nav        = new SynopsisNav();
@@ -24,6 +26,7 @@ function SynopsisDocumentInterface() {
         this.diagram.set_content(scope.node_container);
         this.diagram.set_translation(0, 0);
         this.nav.set_nav(scope);
+        this.on_load_scope.trigger(scope);
     }
 
     const load_document = document => {

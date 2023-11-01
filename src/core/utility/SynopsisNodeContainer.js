@@ -53,13 +53,14 @@ function SynopsisNodeContainer() {
     update_translation();
   }
 
+  const load = element => {
+    this.dom.root = element;
+    this.dom.translator = this.dom.root.querySelector('*.diagram-nodes-translator');
+  }
+
   // ---------------------------------------------------------------------------
 
-  this.on_load.subscribe(element => {
-    this.dom.root   = element;
-    this.dom.translator = this.dom.root.querySelector('*.diagram-nodes-translator');
-  });
-
+  this.on_load.subscribe(load);
   this.on_extent_change.subscribe(update);
 
   // ---------------------------------------------------------------------------
