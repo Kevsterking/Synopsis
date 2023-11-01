@@ -38,6 +38,7 @@ const include_structure = {
         },
         "controller": {
             "SynopsisScroller.js": null,
+            "SynopsisNodeController.js": null,
             "SynopsisScopeController.js": null,
             "SynopsisDocumentInterfaceController.js": null,
             "SynopsisDiagramController.js": null,

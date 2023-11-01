@@ -3,11 +3,11 @@ function SynopsisEvent() {
     const subscribers = new Set();
 
     this.subscribe = f => {
-        subscribers.add(f);
+        f ? subscribers.add(f) : 0;
     }
 
     this.unsubscribe = f => {
-        subscribers.delete(f);
+        f ? subscribers.delete(f) : 0;
     }
 
     this.trigger = (...args) => {
