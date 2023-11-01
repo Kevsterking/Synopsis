@@ -2,31 +2,28 @@ function SynopsisDocumentInterface() {
 
     SynopsisComponent.call(this);
     
+    this.document   = new SynopsisDocument();
     this.diagram    = new SynopsisCoordinateSystem();
     this.nav        = new SynopsisNav();
 
-    this.document       = new SynopsisDocument();
+    this.controller = new SynopsisController();
 
     this.active_scope = null;
 
+    this.dom = {
+        root: null,
+        editor: null,
+        content: null,
+        nav: null
+    };
+
     // ---------------------------------------------------------------------------
-
-    let dragging_editor = false;
-
-    // ---------------------------------------------------------------------------
-
-    const content_key_listen = e => {
-        if (e.key == "s" && e.ctrlKey) {
-            e.preventDefault();
-            save_document();
-        }
-    }
 
     const load_scope = scope => {
         this.active_scope = scope;
         this.diagram.set_content(scope.node_container);
-        this.nav.set_nav(scope);
         this.diagram.set_translation(0, 0);
+        this.nav.set_nav(scope);
     }
 
     const load_document = document => {
@@ -34,69 +31,17 @@ function SynopsisDocumentInterface() {
         load_scope(this.active_scope);
     }
 
-    const save_document = () => {
-        save_global(this.document.path, this.document.get_save_string());
-    }
-
     const load = element => {
 
-        const editor = element.querySelector("div.synopsis-document-editor");
-        const content = element.querySelector("div.synopsis-document-content");
-        const nav = element.querySelector("div.synopsis-document-nav");
+        this.dom.root       = element;
+        this.dom.editor     = element.querySelector("div.synopsis-document-editor");
+        this.dom.content    = element.querySelector("div.synopsis-document-content");
+        this.dom.nav        = element.querySelector("div.synopsis-document-nav");
 
-        this.diagram.spawn(content);
-        this.nav.spawn(nav);
+        this.diagram.spawn(this.dom.content);
+        this.nav.spawn(this.dom.nav);
         
-        content.addEventListener("mouseenter", () => {
-            window.addEventListener("keydown", content_key_listen);
-        });
-
-        content.addEventListener("mouseleave", () => {
-            window.removeEventListener("keydown", content_key_listen);
-        });
-
-        element.addEventListener("mouseup", e => {
-            if (dragging_editor) {
-                dragging_editor = false;
-            }
-        });
-
-        document.addEventListener("mouseup", e => {
-            if (dragging_editor) {
-                dragging_editor = false;
-            }
-        });
-
-        element.addEventListener("mousedown", e => {
-
-            const L = element.clientWidth - editor.offsetWidth;
-
-            if (e.x > L - 10 && e.x < L + 10) {
-                dragging_editor = true;
-                element.style.cursor = "w-resize";
-            }
-
-        });
-
-        element.addEventListener("mousemove", e => {
-
-            const L = element.clientWidth - editor.offsetWidth;
-
-            if (dragging_editor) {
-                editor.style.width = element.clientWidth - e.x + "px";
-            } else {
-                if (e.x > L - 10 && e.x < L + 10) {
-                    element.style.cursor = "w-resize";
-                } else {
-                    element.style.cursor = "default";
-                }
-            }
-
-        });
-
-        this.document.on_load.subscribe(() => {
-            load_document(this.document);
-        });
+        this.controller.bind(this);
 
         this.document.load("nodetest.json");
         
@@ -108,6 +53,10 @@ function SynopsisDocumentInterface() {
         load_scope(scope);
     });
     
+    this.document.on_load.subscribe(() => {
+        load_document(this.document);
+    });
+
     this.on_load.subscribe(load);
 
     // ---------------------------------------------------------------------------

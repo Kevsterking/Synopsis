@@ -1,5 +1,7 @@
 function Synopsis() {
     
+    SynopsisComponent.call(this);
+
     this.on_load = new SynopsisEvent();
     
     this.workspace = new SynopsisWorkspace({ 
@@ -15,14 +17,11 @@ function Synopsis() {
 
     // ---------------------------------------------------------------------------
 
-    this.spawn = parent_generator => {
-        place_in_dom(
-            `
-                <div class="synopsis" style="width: 100vw;height: 100vh;">
-                </div>
-            `,
-            parent_generator,
-        ).then(this.on_load.trigger);
+    this.get_dom_string = () => {
+        return `
+            <div class="synopsis" style="width: 100vw;height: 100vh;">
+            </div>
+        `;
     }
 
 }

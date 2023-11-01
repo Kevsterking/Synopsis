@@ -2,16 +2,14 @@ function SynopsisScroller() {
 
     this.on_scroll = new SynopsisEvent();
 
-    this.element = null;
-
-    this.extent     = new SynopsisExtent();
+    this.element    = null;
+    this.extent     = null;
+;
     this.position   = new SynopsisCoordinate();
 
     // ---------------------------------------------------------------------------
 
     const animation_time = 100;
-
-    // ---------------------------------------------------------------------------
 
     let state = {
         animation_frame_request: null,
@@ -113,42 +111,69 @@ function SynopsisScroller() {
         progress_ongoing_animation();
     }
 
-    const bind = (element, callback=null, auto_update_extent=true) => {
+    const on_mousewheel = e => {
 
-        const cb = callback ? callback : default_callback(element);
+        e.preventDefault();
+
+        const dx = shift_pressed ? e.deltaY : 0;
+        const dy = !shift_pressed ? e.deltaY : 0;
+
+        /*
+        set_target(state.target.x + dx, state.target.y + dy);
+        set_position_keep_target(state.target.x, state.target.y);
+        this.on_scroll.trigger(this.position);
+        */
+
+        this.scroll_to(state.target.x + dx, state.target.y + dy);
+
+    }
+
+    const unbind = () => {
+
+        this.on_scroll.unsubscribe(this.callback);
+
+        this.callback = null;
+        
+        this.extent.x = 0;
+        this.extent.y = 0;
+        
+        if (this.auto_update_extent) {
+            synopsis_resize_observer.stop_observing(this.element);
+        }
+
+        this.auto_update_extent = null;
+
+        this.element?.removeEventListener("wheel", on_mousewheel);
+
+        this.element = null;
+
+    }
+
+    const bind = (element, callback=null, extent=false) => {
 
         this.element = element;
-        
-        if (auto_update_extent) {
+        this.callback = callback ? callback : default_callback(element);
+
+        if (extent) {
+            this.extent = extent;
+        } else {
+            this.auto_update_extent = true;
+            this.extent = new SynopsisExtent();
             synopsis_resize_observer.observe(element, update_extent);
             update_extent();
         }
 
-        this.on_scroll.subscribe(cb);
-
-        element.addEventListener("wheel", e => {
+        this.on_scroll.subscribe(this.callback);
         
-            e.preventDefault();
-            
-            const dx = shift_pressed ? e.deltaY : 0;
-            const dy = !shift_pressed ? e.deltaY : 0;
-
-            /*
-            set_target(state.target.x + dx, state.target.y + dy);
-            set_position_keep_target(state.target.x, state.target.y);
-            this.on_scroll.trigger(this.position);
-            */
-
-            this.scroll_to(state.target.x + dx, state.target.y + dy);
-            
-        });
+        this.element?.addEventListener("wheel", on_mousewheel);
 
     }
 
     // ---------------------------------------------------------------------------
     
-    this.bind = bind;
-    this.set_position_no_event = set_position_no_event; 
-    this.scroll_to = scroll_to;
+    this.bind                   = bind;
+    this.unbind                 = unbind;
+    this.set_position_no_event  = set_position_no_event; 
+    this.scroll_to              = scroll_to;
 
 }

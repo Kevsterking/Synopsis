@@ -1,9 +1,13 @@
 function SynopsisEvent() {
     
-    const subscribers = [];
+    const subscribers = new Set();
 
-    this.subscribe = (f) => {
-        subscribers.push(f);
+    this.subscribe = f => {
+        subscribers.add(f);
+    }
+
+    this.unsubscribe = f => {
+        subscribers.delete(f);
     }
 
     this.trigger = (...args) => {

@@ -1,9 +1,8 @@
 function SynopsisContainExtent() {
 
-    this.on_change = new SynopsisEvent();
+    SynopsisExtent.call(this);
 
-    this.x = { min: 0, max: 0 };
-    this.y = { min: 0, max: 0 };
+    this.on_change = new SynopsisEvent();
 
     // ---------------------------------------------------------------------------
 
@@ -39,7 +38,6 @@ function SynopsisContainExtent() {
 
     const remove_subextent = extent => {
         if (!subextent_map.has(extent)) {
-            console.log("remove none existing");
             return 0;
         } else {
             const extent_proxy = subextent_map.get(extent);

@@ -2,55 +2,54 @@ const null_container = new SynopsisNodeContainer();
 
 function SynopsisCoordinateSystem() {
 
-  this.on_load            = new SynopsisEvent();
-  this.on_resize          = new SynopsisEvent(); 
-  this.on_translate       = new SynopsisEvent();
-  
-  this.content    = null;
-  
-  this.background = new SynopsisGrid();   
-  this.scroller   = new SynopsisScroller();
+  SynopsisComponent.call(this);
+
+  this.on_resize      = new SynopsisEvent(); 
+  this.on_translate   = new SynopsisEvent();
+  this.on_set_content = new SynopsisEvent();
+
+  this.background       = new SynopsisGrid();   
+
+  this.content          = null;
 
   this.padding          = new SynopsisCoordinate(); 
   this.translation      = new SynopsisCoordinate();
   this.scroll_position  = new SynopsisCoordinate();
+  this.center           = new SynopsisCoordinate();
 
-  // ---------------------------------------------------------------------------
+  this.extent           = new SynopsisExtent();
 
-  const inset_padding = 100;
+  this.inset_padding = 100;
 
-  // ---------------------------------------------------------------------------
-
-  const get_event_relative_pos = e => {
-    const rect = this.content_dom.getBoundingClientRect();
-    return new SynopsisCoordinate(e.x + this.scroll_position.x - rect.left, e.y + this.scroll_position.y - rect.top);
-  } 
-
-  const get_event_coordinate = e => {
-    const rel_cord = get_event_relative_pos(e);
-    return new SynopsisCoordinate(this.content.extent.x.min - (this.content_dom.clientWidth - inset_padding) + rel_cord.x, this.content.extent.y.min - (this.content_dom.clientHeight - inset_padding) + rel_cord.y);
+  this.dom = {
+    root: null,
+    background: null,
+    content: null,
+    content_container: null,
   }
 
+  // ---------------------------------------------------------------------------
+
   const update_size = () => {
-    const cx = this.content_dom.clientWidth * 0.5;
-    const cy = this.content_dom.clientHeight * 0.5;
-    this.padding.x = this.content_dom.clientWidth - inset_padding;
-    this.padding.y = this.content_dom.clientHeight - inset_padding;
-    this.scroller.extent.x.min = this.content?.extent.x.min - this.padding.x + cx;
-    this.scroller.extent.x.max = this.content?.extent.x.max + this.padding.x - cx;
-    this.scroller.extent.y.min = this.content?.extent.y.min - this.padding.y + cy;
-    this.scroller.extent.y.max = this.content?.extent.y.max + this.padding.y - cy;
-    this.content_container.style.padding = this.padding.y + "px " + this.padding.x + "px";
+    this.center.x = this.dom.content.clientWidth * 0.5;
+    this.center.y = this.dom.content.clientHeight * 0.5;
+    this.padding.x = this.dom.content.clientWidth - this.inset_padding;
+    this.padding.y = this.dom.content.clientHeight - this.inset_padding;
+    this.extent.x.min = this.content.extent.x.min - this.padding.x + this.center.x;
+    this.extent.x.max = this.content.extent.x.max + this.padding.x - this.center.x;
+    this.extent.y.min = this.content.extent.y.min - this.padding.y + this.center.y;
+    this.extent.y.max = this.content.extent.y.max + this.padding.y - this.center.y;
+    this.dom.content_container.style.padding = this.padding.y + "px " + this.padding.x + "px";
   }
 
   const update_translation = () => {
-    const cx = this.content_dom.clientWidth * 0.5;
-    const cy = this.content_dom.clientHeight * 0.5;
-    const scr_x = this.padding.x - this.content?.extent.x.min - cx - this.translation.x;
-    const scr_y = this.padding.y - this.content?.extent.y.min - cy - this.translation.y;
+    this.translation.x = Math.min(Math.max(this.translation.x, this.extent.x.min), this.extent.x.max);
+    this.translation.y = Math.min(Math.max(this.translation.y, this.extent.y.min), this.extent.y.max);
+    const scr_x = this.translation.x + this.padding.x - this.content.extent.x.min - this.center.x;
+    const scr_y = this.translation.y + this.padding.y - this.content.extent.y.min - this.center.y;
     this.background.set_translation(this.translation.x, this.translation.y);
-    this.content_dom.scrollLeft = this.scroll_position.x = scr_x;
-    this.content_dom.scrollTop = this.scroll_position.y = scr_y;
+    this.dom.content.scrollLeft = this.scroll_position.x = scr_x;
+    this.dom.content.scrollTop = this.scroll_position.y = scr_y;
   }
 
   const set_translation = (x, y) => {
@@ -59,46 +58,39 @@ function SynopsisCoordinateSystem() {
     update_translation();
   }
 
-  const on_scroll = position => {
-    set_translation(-position.x, -position.y);
-  }
-
   const full_update = () => {
     update_size();
     update_translation();
   }
 
-  const set_content = content => {
-    this.content?.element ? move_to_void_dom(this.content.element) : 0;
-    this.content = content;
-    
-    if (this.content.element) {
-      this.content_container.appendChild(this.content.element);
-      this.content.on_extent_change.subscribe(full_update);
-      full_update();
-    } else {
-      this.content.spawn().then(() => {
-        this.content_container.appendChild(this.content.element);
-        this.content.on_extent_change.subscribe(full_update);
-        full_update();
-      });
+  const set_content_loaded = content => {
+    if (this.content) {
+      this.content.on_extent_change.unsubscribe(full_update);
+      this.content.element ? move_to_void_dom(this.content.element) : 0;
     }
-  
+    this.content = content;
+    this.content.on_extent_change.subscribe(full_update);
+    this.dom.content_container.appendChild(this.content.dom.root);
+    full_update();
+    this.on_set_content.trigger(content);
+  }
+
+  const set_content = content => {
+    if (content?.spawned) {
+      set_content_loaded(content);
+    } else {
+      content?.spawn().then(() => set_content_loaded(content));
+    }
   }
 
   const load = element => {
-
-    const background_container = element.querySelector("div.synopsis-coordinate-system-background");
-    this.content_dom = element.querySelector("div.synopsis-coordinate-system-content");
-    this.content_container = element.querySelector("div.synopsis-coordinate-system-content-container");
-
-    this.scroller.bind(this.content_dom, on_scroll, false);
-    this.background.spawn(background_container);
-
-    synopsis_resize_observer.observe(element, this.on_resize.trigger);
-
+    this.dom.root               = element;
+    this.dom.background         = element.querySelector("div.synopsis-coordinate-system-background");
+    this.dom.content            = element.querySelector("div.synopsis-coordinate-system-content");
+    this.dom.content_container  = element.querySelector("div.synopsis-coordinate-system-content-container");
+    synopsis_resize_observer.observe(this.dom.content, this.on_resize.trigger);
+    this.background.spawn(this.dom.background);
     set_content(null_container);
-
   };
 
   // ---------------------------------------------------------------------------
@@ -108,31 +100,24 @@ function SynopsisCoordinateSystem() {
 
   // ---------------------------------------------------------------------------
 
-  this.get_relative_mouse_pos = get_event_relative_pos;
-  this.get_event_coordinate   = get_event_coordinate;
-
   this.set_content = set_content;
 
   this.set_translation = (x, y) => {
-    this.scroller.set_position_no_event(x, y);
     set_translation(x, y);
+    this.on_translate.trigger();
   }
   
-  this.spawn = parent_generator => {
-    place_in_dom(
-      `
-        <div class="synopsis-coordinate-system" style="position:relative;width:100%;height:100%;">
-          <div class="synopsis-coordinate-system-background" style='z-index: 1; position: absolute; top: 0; left: 0; right: 0; bottom: 0;'>
-          </div>
-          <div class="synopsis-coordinate-system-content" style='z-index: 100; overflow: hidden; position: absolute; top: 0; left: 0; right: 0; bottom: 0;'>
-              <div class="synopsis-coordinate-system-content-container" style="width:fit-content;">
-              </div>
-          </div>
+  this.get_dom_string = () => {
+    return `
+      <div class="synopsis-coordinate-system" style="position:relative;width:100%;height:100%;">
+        <div class="synopsis-coordinate-system-background" style='z-index: 1; position: absolute; top: 0; left: 0; right: 0; bottom: 0;'>
         </div>
-      `,
-      parent_generator, 
-      this.on_load.trigger
-    );
-  };
+        <div class="synopsis-coordinate-system-content" style='z-index: 100; overflow: hidden; position: absolute; top: 0; left: 0; right: 0; bottom: 0;'>
+            <div class="synopsis-coordinate-system-content-container" style="width:fit-content;">
+            </div>
+        </div>
+      </div>
+    `;
+  }
 
 }

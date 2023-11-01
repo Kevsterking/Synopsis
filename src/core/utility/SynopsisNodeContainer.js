@@ -7,8 +7,11 @@ function SynopsisNodeContainer() {
   this.on_add_node      = new SynopsisEvent();
   this.on_extent_change = this.extent.on_change;
 
-  this.element = null;
-
+  this.dom = {
+    root: null,
+    translator: null
+  }
+  
   // ---------------------------------------------------------------------------
 
   const add_node = node => {
@@ -29,20 +32,20 @@ function SynopsisNodeContainer() {
       this.extent.remove_subextent(node.extent);
     });
 
-    node.spawn(this.translator);
+    node.spawn(this.dom.translator);
 
     this.on_add_node.trigger(node);
 
   }
 
   const update_size = () => {
-    this.element.style.width  = (this.extent.x.max - this.extent.x.min) + "px";
-    this.element.style.height = (this.extent.y.max - this.extent.y.min) + "px";
+    this.dom.root.style.width  = (this.extent.x.max - this.extent.x.min) + "px";
+    this.dom.root.style.height = (this.extent.y.max - this.extent.y.min) + "px";
   }
 
   const update_translation = () => {
-    this.translator.style.top   = -this.extent.y.min + "px";
-    this.translator.style.left  = -this.extent.x.min + "px";
+    this.dom.translator.style.top   = -this.extent.y.min + "px";
+    this.dom.translator.style.left  = -this.extent.x.min + "px";
   }
 
   const update = () => {
@@ -52,9 +55,9 @@ function SynopsisNodeContainer() {
 
   // ---------------------------------------------------------------------------
 
-  this.before_load.subscribe(element => {
-    this.element    = element;
-    this.translator = this.element.querySelector('*.diagram-nodes-translator');
+  this.on_load.subscribe(element => {
+    this.dom.root   = element;
+    this.dom.translator = this.dom.root.querySelector('*.diagram-nodes-translator');
   });
 
   this.on_extent_change.subscribe(update);

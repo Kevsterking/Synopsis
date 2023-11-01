@@ -67,7 +67,6 @@ function SynopsisNav() {
     this.on_load.subscribe(element => {
         this.dom.root = element;
         clear_nav();
-        add_nav_item("New Module", null);
     });
 
     // ---------------------------------------------------------------------------
@@ -78,7 +77,7 @@ function SynopsisNav() {
 
     this.get_dom_string = () => {
         return `
-            <div class="synopsis-nav" style="display: flex;gap:5px;font-family: Consolas;font-size: 12px;">
+            <div class="synopsis-nav" style="display: flex;gap:5px;font-family: Consolas;font-size: 12px;padding: 5px 0;">
             </div>    
         `;
     }

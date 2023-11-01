@@ -15,7 +15,6 @@ const include_structure = {
             "SynopsisNode.js": null,
             "SynopsisNodeContainer.js": null,
             "SynopsisScope.js": null,
-            "SynopsisScroller.js": null,
         },
         "diagram": {
             "SynopsisCoorditnateSystem.js": null,
@@ -36,7 +35,11 @@ const include_structure = {
         },
         "document": {
             "SynopsisDocument.js": null,
-
+        },
+        "controller": {
+            "SynopsisScroller.js": null,
+            "SynopsisDiagramController.js": null,
+            "SynopsisController.js": null,
         },
         "SynopsisDocumentInterface.js": null,
         "SynopsisHomepage.js": null,
