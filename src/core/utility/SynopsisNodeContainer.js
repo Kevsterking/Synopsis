@@ -69,7 +69,7 @@ function SynopsisNodeContainer() {
 
   this.get_dom_string = () => {
     return `
-      <div class="diagram-nodes" style="box-sizing: content-box;position:relative;border: 1px solid white;">
+      <div class="diagram-nodes" style="box-sizing: content-box;position:relative;">
         <div class="diagram-nodes-translator" style="position:absolute;width: 0;">
         </div>
       </div>

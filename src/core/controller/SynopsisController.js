@@ -14,6 +14,7 @@ function SynopsisController() {
 
   const load_diagram_controller = () => {
     this.diagram_controller.bind(this.document_interface);
+    this.diagram_controller.on_scroll.subscribe(this.scope_controller.update_drag);
   }
 
   const load_document_interface_controller = () => {
@@ -29,6 +30,8 @@ function SynopsisController() {
     this.document_interface_controller.unbind();
     this.diagram_controller.unbind();
     this.scope_controller.unbind();
+
+    this.diagram_controller.on_scroll.unsubscribe(this.scope_controller.update_drag);
 
     this.document_interface = null;
 

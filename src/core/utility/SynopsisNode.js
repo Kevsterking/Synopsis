@@ -99,7 +99,7 @@ function SynopsisNode() {
 
   this.get_dom_string = () => {
     return `
-      <div class='synopsis-node' style='user-select: none;white-space: nowrap; position: absolute;cursor: pointer;'>
+      <div class='synopsis-node' style='user-select: none;user-drag: none;white-space: nowrap; position: absolute;cursor: pointer;'>
       ` + this.html + `
       </div>
     `;
