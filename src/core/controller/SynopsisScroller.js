@@ -57,6 +57,11 @@ function SynopsisScroller() {
         this.position.y = y;
     } 
 
+    const set_position = () => {
+        set_position_no_event();
+        this.on_scroll.trigger(this.position);
+    }
+
     const update_extent = () => {
         this.extent.x.min = 0;
         this.extent.x.max = this.element.scrollWidth;
@@ -173,7 +178,8 @@ function SynopsisScroller() {
     
     this.bind                   = bind;
     this.unbind                 = unbind;
-    this.set_position_no_event  = set_position_no_event; 
+    this.set_position_no_event  = set_position_no_event;
+    this.set_position           = set_position;
     this.scroll_to              = scroll_to;
 
 }

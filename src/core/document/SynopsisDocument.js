@@ -7,20 +7,18 @@ function SynopsisDocument() {
     this.root_scope     = null;
     this.current_scope  = null;
 
-    // ---------------------------------------------------------------------------
-
-    let data = null;
+    this.data = null;
 
     // ---------------------------------------------------------------------------
 
     const create_scope = () => {
-        this.root_scope = new SynopsisScope(data);
+        this.root_scope = new SynopsisScope(this.data);
         this.current_scope = this.root_scope;
     }
 
     const load_from_file = path => {
-        get_json(path, dat => { 
-            data = dat;
+        get_json(path).then(dat => { 
+            this.data = dat;
             this.path = path;
             create_scope();
             this.on_load.trigger(); 
@@ -32,7 +30,7 @@ function SynopsisDocument() {
     this.load = load_from_file;
 
     this.get_save_string = () => {
-        return JSON.stringify(data, null, 2);
+        return JSON.stringify(this.data, null, 2);
     }
 
 }

@@ -11,6 +11,7 @@ const include_structure = {
             "SynopsisComponent.js": null,
             "SynopsisExtent.js": null,
             "SynopsisTree.js": null,
+            "SynopsisBindManager.js": null,
             "SynopsisContainExtent.js": null,
             "SynopsisNode.js": null,
             "SynopsisNodeContainer.js": null,

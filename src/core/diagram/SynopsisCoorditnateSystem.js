@@ -64,15 +64,20 @@ function SynopsisCoordinateSystem() {
   }
 
   const set_content_loaded = content => {
-    if (this.content) {
+
+    if (this.content?.dom.root) {
       this.content.on_extent_change.unsubscribe(full_update);
-      this.content.element ? move_to_void_dom(this.content.element) : 0;
+      this.content.dom.root ? move_to_void_dom(this.content.dom.root) : 0;
     }
+
     this.content = content;
     this.content.on_extent_change.subscribe(full_update);
     this.dom.content_container.appendChild(this.content.dom.root);
+  
     full_update();
+  
     this.on_set_content.trigger(content);
+  
   }
 
   const set_content = content => {
@@ -84,13 +89,16 @@ function SynopsisCoordinateSystem() {
   }
 
   const load = element => {
+  
     this.dom.root               = element;
     this.dom.background         = element.querySelector("div.synopsis-coordinate-system-background");
     this.dom.content            = element.querySelector("div.synopsis-coordinate-system-content");
     this.dom.content_container  = element.querySelector("div.synopsis-coordinate-system-content-container");
     synopsis_resize_observer.observe(this.dom.content, this.on_resize.trigger);
     this.background.spawn(this.dom.background);
+    
     set_content(null_container);
+  
   };
 
   // ---------------------------------------------------------------------------

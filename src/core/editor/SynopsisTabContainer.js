@@ -98,13 +98,9 @@ function SynopsisTabContainer(config) {
 
         this.tab_generator.bind(this.dom.content_container);
 
-        this.add_tab = add_tab;
-
         bind_controls();
 
         this.default_page.spawn(this.dom.content_container);
-
-        //this.add_tab();
 
     }
 
@@ -117,6 +113,8 @@ function SynopsisTabContainer(config) {
     });
 
     // ---------------------------------------------------------------------------
+
+    this.add_tab = add_tab;
 
     this.get_dom_string = () => {
         return `

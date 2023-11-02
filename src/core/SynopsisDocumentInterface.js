@@ -64,6 +64,8 @@ function SynopsisDocumentInterface() {
 
     // ---------------------------------------------------------------------------
 
+    this.load_scope = load_scope;
+
     this.get_dom_string = () => {
         return `
             <div class="synopsis-document" style="display: flex;width: 100%;height: 100%;">

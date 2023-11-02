@@ -1,6 +1,8 @@
 function SynopsisController() {
 
-  this.document_interface = null;
+  SynopsisBindManager.call(this);
+
+  this.on_node_open = new SynopsisEvent();
 
   this.document_interface_controller  = new SynopsisDocumentInterfaceController();
   this.diagram_controller             = new SynopsisDiagramController();
@@ -8,48 +10,35 @@ function SynopsisController() {
 
   // ---------------------------------------------------------------------------
 
-  const load_scope_controller = () => {
-    this.scope_controller.bind(this.document_interface);
+  const bind_scope_controller = document_interface => {
+    this.add_bind(this.scope_controller.bind, this.scope_controller.unbind, document_interface);
   }
 
-  const load_diagram_controller = () => {
-    this.diagram_controller.bind(this.document_interface);
-    this.diagram_controller.on_scroll.subscribe(this.scope_controller.update_drag);
+  const bind_diagram_controller = document_interface => {
+    this.add_bind(this.diagram_controller.bind, this.diagram_controller.unbind, document_interface);
+    this.add_bind(this.diagram_controller.on_scroll.subscribe, this.diagram_controller.on_scroll.unsubscribe, this.scope_controller.update_drag);
   }
 
-  const load_document_interface_controller = () => {
-    this.document_interface_controller.bind(this.document_interface);
-  }
-
-  const unbind = () => {
-
-    this.document_interface.on_load.unsubscribe(load_document_interface_controller);
-    this.document_interface.on_load.unsubscribe(load_diagram_controller);
-    this.document_interface.on_load.unsubscribe(load_scope_controller);
-
-    this.document_interface_controller.unbind();
-    this.diagram_controller.unbind();
-    this.scope_controller.unbind();
-
-    this.diagram_controller.on_scroll.unsubscribe(this.scope_controller.update_drag);
-
-    this.document_interface = null;
-
+  const bind_document_interface_controller = document_interface => {
+    this.add_bind(this.document_interface_controller.bind, this.document_interface_controller.unbind, document_interface);
   }
 
   const bind = document_interface => {
+    this.add_bind(document_interface.on_load.subscribe, document_interface.on_load.unsubscribe, () => bind_document_interface_controller(document_interface));
+    this.add_bind(document_interface.on_load.subscribe, document_interface.on_load.unsubscribe, () => bind_diagram_controller(document_interface));
+    this.add_bind(document_interface.on_load.subscribe, document_interface.on_load.unsubscribe, () => bind_scope_controller(document_interface));
 
-    this.document_interface = document_interface;
-
-    document_interface.on_load.subscribe(load_document_interface_controller)
-    document_interface.on_load.subscribe(load_diagram_controller);
-    document_interface.on_load.subscribe(load_scope_controller);
+    const f = () => {
+      console.log(this);
+    }
+    this.add_bind(() => document_interface.on_load_scope.subscribe(f), document_interface.on_load_scope.unsubscribe(f));
 
   }
 
   // ---------------------------------------------------------------------------
 
-  this.bind   = bind;
-  this.unbind = unbind;
+  this.bind = bind;
+
+  
 
 }

@@ -60,15 +60,19 @@ function debug(str, opts) {
   }
 }
 
-let get_json = function(url, callback) {
-        
-  const req = new XMLHttpRequest();
+let get_json = function(url) {
+  
+  return new Promise(resolve => {
 
-  req.addEventListener("load", function() {
-    callback(JSON.parse(this.responseText));
+    const req = new XMLHttpRequest();
+
+    req.addEventListener("load", function () {
+      resolve(JSON.parse(this.responseText));
+    });
+
+    req.open("GET", url);
+    req.send();
+
   });
-
-  req.open("GET", url);
-  req.send();
 
 }

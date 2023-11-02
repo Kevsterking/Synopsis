@@ -1,5 +1,16 @@
 function SynopsisScopeController() {
 
+  SynopsisBindManager.call(this);
+
+  this.scope_bind_manager = new SynopsisBindManager();
+  this.scope_bind_manager_id = null;
+
+  const pf = this.scope_bind_manager.unbind;
+  this.scope_bind_manager.unbind = () => {
+    console.log("unbinding", new Error());
+    pf();
+  }
+
   this.document_interface = null;
   this.diagram            = null;
   this.scope              = null;
@@ -21,6 +32,17 @@ function SynopsisScopeController() {
   let listening_for_move    = false;
 
   // ---------------------------------------------------------------------------
+
+  const reset_state = () => {
+
+    move_state.drag_node = null;
+    move_state.node_offset.clear();
+    move_state.last_event = null;
+
+    listening_for_mouseup = false;
+    listening_for_move = false;
+
+  }
 
   const get_event_relative_pos = e => {
     const rect = this.diagram.dom.content.getBoundingClientRect();
@@ -129,15 +151,14 @@ function SynopsisScopeController() {
       
       e.stopPropagation();
 
-      if (listening_for_move) {
-        listening_for_move = false;
-        move_state.drag_node = null;
-        listening_for_mouseup = false;
-      }
-
       if (listening_for_mouseup) {
         node_mousedownup(node);
         listening_for_mouseup = false;
+      }
+
+      if (listening_for_move) {
+        listening_for_move = false;
+        move_state.drag_node = null;
       }
 
 
@@ -151,8 +172,9 @@ function SynopsisScopeController() {
 
       e.stopPropagation();
 
+      listening_for_move = node;
+
       if (selected.has(node)) {
-        listening_for_move = node;
         listening_for_mouseup = true;
       } else {
         node_mousedownup(node);
@@ -160,6 +182,12 @@ function SynopsisScopeController() {
 
     }
   
+  }
+
+  const node_open = node => {
+    return () => {
+      this.document_interface.load_scope(this.document_interface.active_scope.get_scope(node));
+    }
   }
 
   const content_mousedown = e => {
@@ -172,65 +200,50 @@ function SynopsisScopeController() {
     }
   }
 
-  const unbind_node = node => {
-    const node_controller = this.nodes.get(node);
-    node_controller.unbind();
-    //node_controller.on_click.unsubscribe(select_node);
-    this.nodes.delete(node);
-  }
-
   const bind_node = node => {
-    const node_controller = new SynopsisNodeController(node); 
-    node_controller.on_mouse_down.subscribe(node_mousedown(node));
-    node_controller.on_mouse_up.subscribe(node_mouseup(node));
-    node_controller.on_mouse_move.subscribe(e => { e.preventDefault(); });
-    window.addEventListener("mouseup", node_mouseup(node));
-    this.nodes.set(node, node_controller);
+
+    const node_controller = new SynopsisNodeController(node);
+    const mouseupf = node_mouseup(node);
+    
+    console.log("bind node");
+
+    this.scope_bind_manager.add_bind(node_controller.on_mouse_down.subscribe, node_controller.on_mouse_down.unsubscribe, node_mousedown(node));
+    this.scope_bind_manager.add_bind(node_controller.on_mouse_up.subscribe, node_controller.on_mouse_up.unsubscribe, mouseupf);
+    this.scope_bind_manager.add_bind(node_controller.on_double_click.subscribe, node_controller.on_double_click.unsubscribe, node_open(node));
+    this.scope_bind_manager.add_bind(window.addEventListener, window.removeEventListener, ["mouseup", mouseupf]);
+    this.scope_bind_manager.add_bind((k, v) => this.nodes.set(k, v), k =>  this.nodes.delete(k), [node, node_controller], node);
+  
   }
 
-  const unbind_all_nodes = () => {
-    for (const node of this.nodes) {
-      unbind_node(node);
-    }
-  }
+  const bind_scope = scope => {
 
-  const scope_unbind = () => {
-    this.scope.on_add_node.unsubscribe(bind_node);
-    unbind_all_nodes();
-    this.scope = null;
-  }
+    if (this.scope_bind_manager_id) this.remove_bind(this.scope_bind_manager_id);
+    this.scope_bind_manager_id = this.add_bind(() => { }, () => this.scope_bind_manager.unbind());
+    
+    this.scope_bind_manager.add_bind(() => { this.scope = scope },                      () => {});
+    this.scope_bind_manager.add_bind(() => {}, () => reset_state());
+    this.scope_bind_manager.add_bind(() => this.scope.on_add_node.subscribe(bind_node), () => this.scope.on_add_node.unsubscribe(bind_node));
 
-  const scope_bind = scope => {
-    this.scope ? scope_unbind(): 0;
-    this.scope = scope;
-    this.scope.on_add_node.subscribe(bind_node);
-  }
+    scope.nodes.forEach((_, node) => { bind_node(node) });
 
-  const unbind = () => {
-    this.document_interface.on_load_scope.unsubscribe(scope_bind);
-    this.document_interface.dom.content.removeEventListener("mousedown", content_mousedown);
-    this.document_interface.dom.content.removeEventListener("mousemove", content_mousemove);
-    scope_unbind();
-    window.removeEventListener("keydown", key_listen_down);
-    window.removeEventListener("keyup", key_listen_up);
-    this.document_interface = null;
-    this.diagram = null;
+    this.scope_bind_manager.add_bind(() => {}, () => { this.scope = null });
+
   }
 
   const bind = document_interface => {
-    this.diagram = document_interface.diagram;
-    this.document_interface = document_interface;
-    this.document_interface.on_load_scope.subscribe(scope_bind);
-    this.document_interface.dom.content.addEventListener("mousedown", content_mousedown);
-    this.document_interface.dom.content.addEventListener("mousemove", content_mousemove);
-    window.addEventListener("keydown", key_listen_down);
-    window.addEventListener("keyup", key_listen_up);
+    this.unbind();
+    this.add_bind(() => { this.diagram = document_interface.diagram; }, () => { this.diagram = null }, null);
+    this.add_bind(() => { this.document_interface = document_interface; }, () => { this.document_interface = null }, null);
+    this.add_bind(this.document_interface.on_load_scope.subscribe, this.document_interface.on_load_scope.unsubscribe, bind_scope);
+    this.add_bind(this.document_interface.dom.content.addEventListener, this.document_interface.dom.content.removeEventListener, ["mousedown", content_mousedown]);
+    this.add_bind(this.document_interface.dom.content.addEventListener, this.document_interface.dom.content.removeEventListener, ["mousemove", content_mousemove]);
+    this.add_bind(window.addEventListener, window.removeEventListener, ["keydown", key_listen_down]);
+    this.add_bind(window.addEventListener, window.removeEventListener, ["keyup", key_listen_up]);
   } 
 
   // ---------------------------------------------------------------------------
 
-  this.bind   = bind; 
-  this.unbind = unbind;
+  this.bind = bind; 
   
   this.update_drag = () => { drag_selected(move_state.last_event); };
 

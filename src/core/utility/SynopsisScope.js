@@ -15,15 +15,10 @@ function SynopsisScope(obj, parent_scope=null) {
     // ---------------------------------------------------------------------------
 
     const update_obj = () => {
-        
-        const nodes = [];
-
+        let i = 0;
         this.nodes.forEach((scope, _) => {
-            nodes.push(scope.obj);
+            this.obj.nodes[i++] = scope.obj;
         });
-
-        this.obj.nodes = nodes; 
-        
     }
 
     const delete_node = node => {
@@ -32,7 +27,7 @@ function SynopsisScope(obj, parent_scope=null) {
         update_obj();
     }
 
-    const add_node = (node, scope = null) => {
+    const add_node = (node, scope=null) => {
 
         if (this.nodes.has(node)) return -1;
 
@@ -63,7 +58,10 @@ function SynopsisScope(obj, parent_scope=null) {
         this.nodes.clear();
 
         if (obj.nodes) {
-            for (const node_obj of obj.nodes) {
+
+            for (let i in obj.nodes) {
+
+                const node_obj = obj.nodes[i];
 
                 const new_node = new SynopsisNode();
                 const new_scope = new SynopsisScope(node_obj, this);
@@ -78,9 +76,10 @@ function SynopsisScope(obj, parent_scope=null) {
                     node_obj.y = new_node.position.y;
                 });
 
-                add_node(new_node);
+                add_node(new_node, new_scope);
 
             }
+
         }
 
     }

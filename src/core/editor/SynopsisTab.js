@@ -20,6 +20,11 @@ function SynopsisTab(name, content_box) {
 
     // ---------------------------------------------------------------------------
 
+    const selected_color = "#242424";
+    const deselected_color = "#1e1e1e";
+
+    // ---------------------------------------------------------------------------
+
     const set_name = name => {
         this.name = name;
     }
@@ -27,14 +32,14 @@ function SynopsisTab(name, content_box) {
     const hide = () => {
         this.showing = false;
         this.dom.x_button.style.visibility = "hidden";
-        this.dom.tab.style.backgroundColor = "#1e1e1e";
+        this.dom.tab.style.backgroundColor = deselected_color;
         this.dom.content.style.display = "none";
     }
 
     const show = () => {
         this.showing = true;
         this.dom.x_button.style.visibility = "visible";
-        this.dom.tab.style.backgroundColor = "rgb(41, 41, 41)";
+        this.dom.tab.style.backgroundColor = selected_color;
         this.dom.content.style.display = "block";
     }
 
@@ -83,7 +88,7 @@ function SynopsisTab(name, content_box) {
             parent_generator
         );
         
-        Promise.all([place_tab_box, place_content_container]).then((arr) => this.on_load.trigger(...arr));
+        Promise.all([place_tab_box, place_content_container]).then(arr => this.on_load.trigger(...arr));
 
     } 
 

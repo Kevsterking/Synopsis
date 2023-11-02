@@ -1,10 +1,13 @@
 function SynopsisDocumentInterfaceController() {
 
+  SynopsisBindManager.call(this);
+
   this.document_interface = null;
 
   // ---------------------------------------------------------------------------
 
   let dragging_editor = false;
+  let keydowm_unbind_function = null;
 
   // ---------------------------------------------------------------------------
 
@@ -20,14 +23,14 @@ function SynopsisDocumentInterfaceController() {
   }
 
   const mouse_enter_content = () => {
-    window.addEventListener("keydown", content_key_listen);
+    keydowm_unbind_function = this.add_bind(window.addEventListener, window.removeEventListener, ["keydown", content_key_listen]);
   }
 
   const mouse_leave_content = () => {
-    window.removeEventListener("keydown", content_key_listen);
+    keydowm_unbind_function ? this.remove_bind(keydowm_unbind_function) : 0;
   }
 
-  const lift_mouse = () => {
+  const mousmouse_up_document_interfaceeup = () => {
     if (dragging_editor) {
       dragging_editor = false;
     }
@@ -60,38 +63,18 @@ function SynopsisDocumentInterfaceController() {
 
   }
 
-  const unbind = () => {
-    
-    this.document_interface.dom.content.removeEventListener("mouseenter", mouse_enter_content);
-    this.document_interface.dom.content.removeEventListener("mouseleave", mouse_leave_content);
-    this.document_interface.dom.root.removeEventListener("mouseup", lift_mouse);
-    this.document_interface.dom.root.removeEventListener("mousedown", mouse_down_document_interface);
-    this.document_interface.dom.root.removeEventListener("mousemove", mouse_move_document_interface);
-
-    window.removeEventListener("mouseup", lift_mouse);
-
-    this.document_interface = null;
-
-  }
-
   const bind = document_interface => {
-
-    this.document_interface = document_interface;
-
-    this.document_interface.dom.content.addEventListener("mouseenter", mouse_enter_content);
-    this.document_interface.dom.content.addEventListener("mouseleave", mouse_leave_content);
-    this.document_interface.dom.root.addEventListener("mouseup", lift_mouse);
-    this.document_interface.dom.root.addEventListener("mousedown", mouse_down_document_interface);
-    this.document_interface.dom.root.addEventListener("mousemove", mouse_move_document_interface);
-
-    window.addEventListener("mouseup", lift_mouse);
-
+    this.add_bind(() => { this.document_interface = document_interface; }, () => { this.document_interface = null; }, null);
+    this.add_bind(document_interface.dom.content.addEventListener, document_interface.dom.content.removeEventListener, ["mouseenter", mouse_enter_content]);
+    this.add_bind(document_interface.dom.content.addEventListener, document_interface.dom.content.removeEventListener, ["mouseleave", mouse_leave_content]);
+    this.add_bind(document_interface.dom.root.addEventListener, document_interface.dom.root.removeEventListener, ["mouseup", mousmouse_up_document_interfaceeup]);
+    this.add_bind(document_interface.dom.root.addEventListener, document_interface.dom.root.removeEventListener, ["mousedown", mouse_down_document_interface]);
+    this.add_bind(document_interface.dom.root.addEventListener, document_interface.dom.root.removeEventListener, ["mousemove", mouse_move_document_interface]);
+    this.add_bind(window.addEventListener, window.removeEventListener, ["mouseup", mousmouse_up_document_interfaceeup]);
   }
 
   // ---------------------------------------------------------------------------
 
   this.bind   = bind;
-  this.unbind = unbind;
-
 
 }

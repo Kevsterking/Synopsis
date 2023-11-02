@@ -1,6 +1,6 @@
 function SynopsisNodeController(node) {
 
-  this.node = node;
+  SynopsisBindManager.call(this);
 
   this.on_click         = new SynopsisEvent();
   this.on_mouse_down    = new SynopsisEvent();
@@ -30,9 +30,11 @@ function SynopsisNodeController(node) {
 
     this.on_mouse_up.trigger(e);    
 
-  }
+  } 
 
   const mousedown = e => {
+
+    e.preventDefault();
 
     if (e.button != 0) {
       return;
@@ -47,42 +49,38 @@ function SynopsisNodeController(node) {
 
     last_mousedown_time = Date.now();
     cancel_dbkclick = false;
-
-  }
-
-  const node_unbind = () => {
-    this.node.dom.root.removeEventListener("mouseup", mouseup);
-    this.node.dom.root.removeEventListener("mousedown", mousedown);
-    this.node.dom.root.removeEventListener("mousemove", mousemove);
-    this.node.dom.root.removeEventListener("click", click);
+  
   }
 
   const node_bind = () => {
-    this.node.dom.root.addEventListener("mouseup", mouseup);
-    this.node.dom.root.addEventListener("mousedown", mousedown);
-    this.node.dom.root.addEventListener("mousemove", mousemove);
-    this.node.dom.root.addEventListener("click", click);
+    this.add_bind(() => this.node.dom.root.addEventListener("mouseup", mouseup),      () => this.node.dom.root.removeEventListener("mouseup", mouseup));
+    this.add_bind(() => this.node.dom.root.addEventListener("mousedown", mousedown),  () => this.node.dom.root.removeEventListener("mousedown", mousedown));
+    this.add_bind(() => this.node.dom.root.addEventListener("mousemove", mousemove),  () => this.node.dom.root.removeEventListener("mousemove", mousemove));
+    this.add_bind(() => this.node.dom.root.addEventListener("click", click),          () => this.node.dom.root.removeEventListener("click", click));
   }
 
-  const unbind = () => {
-    this.node.on_load.unsubscribe(node_bind);
-    node_unbind();
-  }
-
-  const bind = () => {
-    this.node.on_load.subscribe(node_bind);
+  const bind = node => {
+    
+    this.unbind();
+  
+    this.add_bind(() => { this.node = node },                       () => { this.node = null }, null);
+    
+    if (node.spawned) {
+      node_bind();
+    } else {
+      this.add_bind(() => this.node.on_load.subscribe(node_bind), () => this.node.on_load.unsubscribe(node_bind));
+    }
+    
+    this.add_bind(() => this.node.on_delete.subscribe(this.unbind), () => this.node.on_delete.unsubscribe(this.unbind));
+  
   }
 
   // ---------------------------------------------------------------------------
 
-  this.node.on_delete.subscribe(unbind);
+  this.bind = bind;
 
   // ---------------------------------------------------------------------------
 
-  this.unbind = unbind;
-
-  // ---------------------------------------------------------------------------
-
-  bind();
+  bind(node);
 
 }
